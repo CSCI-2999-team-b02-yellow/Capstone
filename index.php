@@ -143,6 +143,12 @@ setInterval(timeLoop, 1000);
 </script>
 </head>
 <body onload="timeLoop()">
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="contactus.html">Contact Us</a></li>
+    <li><a href="aboutus.html">FAQ</a></li>
+    <li><a href="buttontime.php">buttontime</a></li>
+  </ul	
 
 <div class="main"> 
 
