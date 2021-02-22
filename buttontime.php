@@ -6,16 +6,19 @@ $user = 'admin';
 $password = '$LUbx6*xTY957b6';
 $databaseName = 'YellowGroupDatabase';
 
+	
 	// I put the this function here to be able to use it to connect once instead of connecting everytime we push a button
 	// MySQLi extension (improved) is a database driver used in PHP scripting for interfacing with MySQL databases
 	$conn = mysqli_connect($server, $user, $password, $databaseName) or die("Connection Error"); 
 		
 if(isset($_POST['timeLog'])){
 	
+	date_default_timezone_set("America/New_York");
+	$time = date("h:i:s");
 	// using UPDATE instead of INSERT to just use one row in the database. 
 	// CURRENT_TIME is a MySQL function, we want to use database time as front-end can always be manipulated
 	// Currently database is on +5 hours, which I think is GMT. Looks like this can be changed in my.cnf file in MySQL
-	mysqli_query($conn, "UPDATE YellowGroupDatabase.buttontime SET timeClicked = CURRENT_TIME() WHERE buttontimeID = 1;");
+	mysqli_query($conn, "UPDATE YellowGroupDatabase.buttontime SET timeClicked = '" .$time. "' WHERE buttontimeID = 1;");
 	
 
     
