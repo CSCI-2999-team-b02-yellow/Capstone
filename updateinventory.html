@@ -32,7 +32,7 @@ if(isset($_POST['updateInv'])){
 	// placeholders (?) are used in SQL statements to prepare a statement & prevent SQL injection
 	$sql = "UPDATE tableName
 			SET productSKU = ?, productDescription = ?, productPrice = ?
-			WHERE tableID = ?"
+			WHERE tableID = ?";
 		
 	//----------------------------------------------------------------------------------------------------------------  
 	// This is where we will need to add something in introducing pulling user input from the HTML to fill
