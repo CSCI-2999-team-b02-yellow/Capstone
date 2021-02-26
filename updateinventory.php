@@ -13,7 +13,7 @@ if(isset($_POST['updateInv'])){
 	// $serverName is just the URL our database is hosted on:
 	$serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
 	// $connection info is an array which can only take database, user & password:
-	$connectionInfo = array( "Database"=>"yellowteam", "UID"=>"admin", "PWD"=>"$LUbx6*xTY957b6");
+	$connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
 	$conn = sqlsrv_connect( $serverName, $connectionInfo);
 
 	// Connects to server, or spits out error log if it fails
