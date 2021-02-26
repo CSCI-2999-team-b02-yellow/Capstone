@@ -32,7 +32,7 @@ if(isset($_POST['addInv'])){
 	// price is (smallmoney, null)
 	//-------------------------------------------
 	// placeholders (?) are used in SQL statements to prepare a statement & prevent SQL injection
-	$sql = "INSERT INTO tableName (productName, productSKU, itemDescription, price)
+	$sql = "INSERT INTO yellowteam.dbo.inventory (productName, productSKU, itemDescription, price)
 			VALUES (?, ?, ?, ?)";
 		
 	//----------------------------------------------------------------------------------------------------------------  
