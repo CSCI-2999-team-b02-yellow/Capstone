@@ -1,7 +1,5 @@
 <?php
 
-// File needs to be renamed to updateinventory.php to process PHP later
-
 /* 
  * $_POST is an array that has key value pairs, for example if you have a textbox
  * with the name updateInv, you can use it to pass the values from the textbox
