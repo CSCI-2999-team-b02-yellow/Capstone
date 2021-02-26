@@ -36,12 +36,12 @@ if(isset($_POST['addInv'])){
 			VALUES (?, ?, ?, ?)";
 		
 	//----------------------------------------------------------------------------------------------------------------  
-	// We'll need 4 HTML textboxes (1 for each column) to pull user input from to pass to these variables later.
+	// Using $_POST['addInv'] to trigger form, and then using $_POST['name'] to pull user input into variables.
 	//----------------------------------------------------------------------------------------------------------------  
-	$productName = '';
-	$productSKU = '';
-	$itemDescription = '';
-	$price = '';
+	$productName = $_POST['p-name'];
+	$productSKU = $_POST['p-sku'];
+	$itemDescription = $_POST['p-desc'];
+	$price = $_POST['p-price'];
 	
 	// prepares our statement with connection info, all variables inside placeholders in sql:
 	$stmt = sqlsrv_prepare( $conn, $sql, array(&$productName, &$productSKU, &$itemDescription, &$price));
@@ -126,7 +126,7 @@ Tomas Kasparaitis
   <input type="text" id="p-desc" name="p-desc" value=""><br>
     <label for="p-price">Product Price:</label><br>
   <input type="text" id="p-price" name="p-price" value=""><br>
-  <input type="submit" value="Submit">
+  <input type="submit" name="addInv" value="Submit">
   <!--i don't know how to make it so all this info goes into the database, but would like to learn -jeremy-->
 </form> 
 
