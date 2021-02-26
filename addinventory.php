@@ -117,7 +117,8 @@ Tomas Kasparaitis
   <h3>Welcome to the nuts and bolts add products page!</h3>
   
 
-  <form action="/action_page.php">
+  <!-- edited action="" since we don't have a PHP file to forward to, added method="POST" -Tomas -->
+  <form action="" method="POST">
   <label for="p-name">Product Name:</label><br>
   <input type="text" id="p-name" name="p-name" value=""><br>
   <label for="p-sku">Product SKU:</label><br>
