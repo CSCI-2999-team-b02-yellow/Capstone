@@ -10,10 +10,10 @@ if(isset($_POST['updateInv'])){
 	// we may need to download them onto server from here so the code executes properly: 
 	// https://docs.microsoft.com/en-us/sql/connect/php/microsoft-php-driver-for-sql-server?view=sql-server-ver15
 	
-	// $serverName takes server\instance, followed by port number:
-	$serverName = "serverName\\instanceName, 1433";
+	// $serverName is just the URL our database is hosted on:
+	$serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
 	// $connection info is an array which can only take database, user & password:
-	$connectionInfo = array( "Database"=>"databaseName", "UID"=>"userName", "PWD"=>"password");
+	$connectionInfo = array( "Database"=>"yellowteam", "UID"=>"admin", "PWD"=>"$LUbx6*xTY957b6");
 	$conn = sqlsrv_connect( $serverName, $connectionInfo);
 
 	// Connects to server, or spits out error log if it fails
@@ -24,13 +24,20 @@ if(isset($_POST['updateInv'])){
 		 die( print_r( sqlsrv_errors(), true));
 	}
 	
-	// DB has productName productSKU productDescription productPrice that can be added
-	// DB can only UPDATE productSKU productDescription productPrice NOT productName
+	//------------------------------------------- 
+	// itemID is (PK, int, not null)
+	// productName is (varchar(60), null)
+	// productSKU is (varchar(10), null)
+	// itemDescription is (varchar(5000), null)
+	// price is (smallmoney, null)
+	//-------------------------------------------
+	// Note: Update is NOT ALLOWED to change the productName according to the story requirements
 	
 	// placeholders (?) are used in SQL statements to prepare a statement & prevent SQL injection
-	$sql = "UPDATE tableName
-			SET productSKU = ?, productDescription = ?, productPrice = ?
-			WHERE tableID = ?";
+	$sql = "UPDATE dbo.inventory
+			SET productSKU = ?, itemDescription = ?, price = ?
+			WHERE itemID = ?";
+	// ** since productName & itemID are both unique, maybe productName is better to use for selecting search results from HTML
 		
 	//----------------------------------------------------------------------------------------------------------------  
 	// This is where we will need to add something in introducing pulling user input from the HTML to fill
@@ -39,13 +46,12 @@ if(isset($_POST['updateInv'])){
 	//----------------------------------------------------------------------------------------------------------------  
 	// Note: going to have to create a search that spits out rows of results also? 
 	$productSKU = '';
-	$productDescription = '';
-	$productPrice = '';
-	$tableID = '';
+	$itemDescription = '';
+	$price = '';
+	$itemID = '';
 	
-	// This actually prepares the statement and checks all variables for SQL shenanigans
-	// Note: I believe variable names are arbitrary, but order matters, they could be called a,b,c,d long as sku comes first etc.
-	$stmt = sqlsrv_prepare( $conn, $sql, array( &$productSKU, &$productDescription, &$productPrice, &$tableID));
+	// prepares our statement with connection info, all variables inside placeholders in sql:
+	$stmt = sqlsrv_prepare( $conn, $sql, array( &$productSKU, &$itemDescription, &$price, &$itemID));
 	
 	// Checks that there's no issues with the statement, connection, parameters etc. once all pieced together:
 	if( $stmt )  

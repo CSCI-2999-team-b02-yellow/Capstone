@@ -10,10 +10,10 @@ if(isset($_POST['addInv'])){
 	// we may need to download them onto server from here so the code executes properly: 
 	// https://docs.microsoft.com/en-us/sql/connect/php/microsoft-php-driver-for-sql-server?view=sql-server-ver15
 	
-	// $serverName takes server\instance, followed by port number:
-	$serverName = "serverName\\instanceName, 1433";
+	// $serverName is just the URL our database is hosted on:
+	$serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
 	// $connection info is an array which can only take database, user & password:
-	$connectionInfo = array( "Database"=>"databaseName", "UID"=>"userName", "PWD"=>"password");
+	$connectionInfo = array( "Database"=>"yellowteam", "UID"=>"admin", "PWD"=>"$LUbx6*xTY957b6");
 	$conn = sqlsrv_connect( $serverName, $connectionInfo);
 
 	// Connects to server, or spits out error log if it fails
@@ -24,9 +24,15 @@ if(isset($_POST['addInv'])){
 		 die( print_r( sqlsrv_errors(), true));
 	}
 	
-	// Add should introduce 4 columns to DB for items: productName productSKU productDescription productPrice
+	//------------------------------------------- 
+	// itemID is (PK, int, not null)
+	// productName is (varchar(60), null)
+	// productSKU is (varchar(10), null)
+	// itemDescription is (varchar(5000), null)
+	// price is (smallmoney, null)
+	//-------------------------------------------
 	// placeholders (?) are used in SQL statements to prepare a statement & prevent SQL injection
-	$sql = "INSERT INTO tableName (productName, productSKU, productDescription, productPrice)
+	$sql = "INSERT INTO tableName (productName, productSKU, itemDescription, price)
 			VALUES (?, ?, ?, ?)";
 		
 	//----------------------------------------------------------------------------------------------------------------  
@@ -34,14 +40,13 @@ if(isset($_POST['addInv'])){
 	//----------------------------------------------------------------------------------------------------------------  
 	$productName = '';
 	$productSKU = '';
-	$productDescription = '';
-	$productPrice = '';
+	$itemDescription = '';
+	$price = '';
 	
-	// This actually prepares the statement and checks all variables for SQL shenanigans
-	// Note: I believe variable names are arbitrary, but order matters, they could be called a,b,c,d long as sku comes first etc.
-	$stmt = sqlsrv_prepare( $conn, $sql, array( &$productSKU, &$productDescription, &$productPrice, &$tableID));
+	// prepares our statement with connection info, all variables inside placeholders in sql:
+	$stmt = sqlsrv_prepare( $conn, $sql, array(&$productName, &$productSKU, &$itemDescription, &$price));
 	
-	// Checks that there's no issues with the statement, connection, parameters etc. once all pieced together:
+	// checks the statement for errors, sqlsrv_prepare returns false if there's an error:
 	if( $stmt )  
 	{  
 		 echo "Statement prepared.\n";  
