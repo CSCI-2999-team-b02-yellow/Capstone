@@ -13,10 +13,22 @@ if(isset($_POST['addInv'])){
 
 	// Connects to server, or spits out error log if it fails
 	if( $conn ) {
-		 echo 'console.log("Connection established.\n")';
+		 echo '<script>console.log("Connection established.\n")</script>';
 	}else{
-		 echo 'console.log("Connection could not be established.\n")';
-		 die( print_r( sqlsrv_errors(), true));
+		 echo '<script>console.log("Connection could not be established.\n");</script>';
+		 /* Giving up on passing PHP arrays, which is what i think sqlsrv_errors() returns
+		  * to javascript. Either syntax is off, or we need something installed for json_encode
+		  * to work. Too much trouble for what it's worth for this sprint. We can just introduce
+		  * a server-side error log for more details if needed later. Leaving old code for reference:
+		  *
+		  *	 $log = print_r( sqlsrv_errors(), true);
+		  *	 echo '<script>
+		  *	 var jArray = <?php echo json_encode($log); ?>; 
+		  *	 for(var i=0; i<jArray.length; i++) {
+		  *		 console.log(jArray[i]));
+		  *	 }
+		  *	 </script>';
+		  */
 	}
 	
 	//------------------------------------------- 
@@ -44,23 +56,23 @@ if(isset($_POST['addInv'])){
 	// checks the statement for errors, sqlsrv_prepare returns false if there's an error:
 	if( $stmt )  
 	{  
-		 echo 'console.log("Statement prepared.\n")';  
+		 echo '<script>console.log("Statement prepared.\n")</script>';  
 	}  
 	else  
 	{  
-		 echo 'console.log("Error in preparing statement.\n")';  
-		 die( print_r( sqlsrv_errors(), true));  
+		 echo '<script>console.log("Error in preparing statement.\n")</script>';  
+		 // $log = print_r( sqlsrv_errors(), true);  
 	} 
 	
 	// This actually uses the statement on the database, prints out errors if something happens:
 	if( sqlsrv_execute( $stmt))  
 	{  
-		  echo 'console.log("Statement executed.\n")';  
+		  echo '<script>console.log("Statement executed.\n")</script>';  
 	}  
 	else  
 	{  
-		 echo 'console.log("Error in executing statement.\n")';  
-		 die( print_r( sqlsrv_errors(), true));  
+		 echo '<script>console.log("Error in executing statement.\n")</script>';  
+		 // $log = print_r( sqlsrv_errors(), true);   
 	}  
 	
 	// Closes the connection and also releases statement resources:
@@ -90,7 +102,7 @@ Tomas Kasparaitis
   <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, products, add, add products">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link href="css/addinventorystyle.css" rel="stylesheet">
+  <link href="css/indexstyle.css" rel="stylesheet">
 </head>
 
 <body>
