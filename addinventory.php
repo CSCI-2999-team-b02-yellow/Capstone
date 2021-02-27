@@ -1,15 +1,10 @@
 <?php
 
-/* 
- * $_POST is an array that has key value pairs, for example if you have a textbox
- * with the name addInv, you can use it to pass the values from the textbox
- */
+// checks if HTML element by the name of 'addInv' has been clicked
+// Note: PHP supports try catch blocks, error handling should be later rewritten using this logic
 if(isset($_POST['addInv'])){
-
-	// Since we are now working with Microsoft SQL server, which has a different PHP driver for connections
-	// we may need to download them onto server from here so the code executes properly: 
-	// https://docs.microsoft.com/en-us/sql/connect/php/microsoft-php-driver-for-sql-server?view=sql-server-ver15
 	
+	// SQLSRV are Microsoft developed drivers, PDO_SQLSRV or PDO are community developed drivers for MSSQL
 	// $serverName is just the URL our database is hosted on:
 	$serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
 	// $connection info is an array which can only take database, user & password:
@@ -18,9 +13,9 @@ if(isset($_POST['addInv'])){
 
 	// Connects to server, or spits out error log if it fails
 	if( $conn ) {
-		 echo "Connection established.\n";
+		 echo 'console.log("Connection established.\n")';
 	}else{
-		 echo "Connection could not be established.\n";
+		 echo 'console.log("Connection could not be established.\n")';
 		 die( print_r( sqlsrv_errors(), true));
 	}
 	
@@ -49,22 +44,22 @@ if(isset($_POST['addInv'])){
 	// checks the statement for errors, sqlsrv_prepare returns false if there's an error:
 	if( $stmt )  
 	{  
-		 echo "Statement prepared.\n";  
+		 echo 'console.log("Statement prepared.\n")';  
 	}  
 	else  
 	{  
-		 echo "Error in preparing statement.\n";  
+		 echo 'console.log("Error in preparing statement.\n")';  
 		 die( print_r( sqlsrv_errors(), true));  
 	} 
 	
 	// This actually uses the statement on the database, prints out errors if something happens:
 	if( sqlsrv_execute( $stmt))  
 	{  
-		  echo "Statement executed.\n";  
+		  echo 'console.log("Statement executed.\n")';  
 	}  
 	else  
 	{  
-		 echo "Error in executing statement.\n";  
+		 echo 'console.log("Error in executing statement.\n")';  
 		 die( print_r( sqlsrv_errors(), true));  
 	}  
 	
