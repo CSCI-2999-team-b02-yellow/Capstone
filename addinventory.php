@@ -102,7 +102,7 @@ Tomas Kasparaitis
   <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, products, add, add products">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link href="css/indexstyle.css" rel="stylesheet">
+  <link href="css/addinventorystyle.css" rel="stylesheet">
 </head>
 
 <body>
@@ -110,23 +110,21 @@ Tomas Kasparaitis
       <div class="links">
       <a class="active" href="index.html">Home</a>
       <a href="products.html">Products</a>
-
       <a href="addinventory.php">Add Inventory</a>
 	  <a href="updateinventory.php">Update Products</a>
 	  <a href="contactus.html">Contact Us</a>	  
 	  <a href="aboutus.html">FAQ</a>
-	  
-
       </div>
+	  
       <div class ="logo">
       <img src="inverselogo.png" alt="Italian Trulli" style="width:4.5%;height:4.5%;">
-    </div>
-    </div>
-  
+      </div>
+</div>
+
+<div class="content">  
   <h1>Nuts and Bolts Hardware</h1>
   <h3>Welcome to the nuts and bolts add products page!</h3>
   
-
   <!-- edited action="" since we don't have a PHP file to forward to, added method="POST" -Tomas -->
   <form action="" method="POST">
   <label for="p-name">Product Name:</label><br>
@@ -139,11 +137,8 @@ Tomas Kasparaitis
   <input type="text" id="p-price" name="p-price" value=""><br>
   <input type="submit" name="addInv" value="Submit">
   <!--i don't know how to make it so all this info goes into the database, but would like to learn -jeremy-->
-</form> 
+  </form>
+</div>
 
-  
-
-  <script src="js/script.js"></script>
 </body>
-
 </html>
