@@ -11,8 +11,10 @@ if(isset($_POST['searchPress'])) {
 	$searchOption = $_POST['searchOptions'];
 	$userInput = $_POST[''];
 	
-	// sanitizing $searchOption (vulnerable radiobutton value) which can only be 3 strict strings:
-	if ($searchOption == 'productSKU' OR
+	// think about searching for everything in DB as an option maybe? either other radiobutton/allow wildstar
+	// sanitizing $searchOption (vulnerable radiobutton value) which can only be 4 strict strings:
+	if ($searchOption == 'productName' OR
+		$searchOption == 'productSKU' OR
 		$searchOption == 'itemDescription' OR
 		$searchOption == 'price') 
 		{
@@ -40,20 +42,27 @@ if(isset($_POST['searchPress'])) {
 			 // $log = print_r( sqlsrv_errors(), true);   
 		}  
 	
+	// Starting table headers, which need to be outside the loop to not be repeated each iteration:
+	echo "<table><tr>
+				 <th>Product Name</th>
+				 <th>Product SKU</th>
+				 <th>Item Description></th>
+				 <th>Price</th>
+				 </tr>" 
+				 
+	// could make <tr name or id = SQL TABLE ID>, for easy grabbing for update functionality later?
 	// now we need to load the results, generate a loop and have it echo off tables in the HTML here:
-	$row = sqlsrv_fetch_array($stmt);
-	// this is a frankenstein of different sources I still have to figure out between differences
-	// in using prepared statements vs normal queries
-	$result = $conn->query($sql);
-	if ($result->num_rows > 0) {
-	// output data of each row
-	while($row = $result->fetch_assoc()) {
-	echo "<tr><td>" . $row["id"]. "</td><td>" . $row["username"] . "</td><td>"
-	. $row["password"]. "</td></tr>";
+	while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+		echo "<tr><td>".$row['productName']."</td>"
+			 ."<td>".$row['productSKU']."</td>"
+			 ."<td>".$row['itemDescription']."</td>"
+			 ."<td>".$row['price']."</td>";
 	}
 	echo "</table>";
-	} else { echo "0 results"; }
-	
+	} else { 
+		echo '<script>console.log("Search yielded no results.\n")</script>'; 
+	}
+
 	// Closes the connection and also releases statement resources:
 	sqlsrv_free_stmt( $stmt);  
 	sqlsrv_close( $conn); 
@@ -136,7 +145,13 @@ if(isset($_POST['submit'])){
 	<div><b> Update Products <b></div><br>
 	<form action="" method="POST">
       <fieldset>
-       <p style="font-size:14px">Search Options:          
+       <p style="font-size:14px">Search Options:
+		   <input type = "radio"
+                 name = "searchOptions"
+                 value = "productName"
+				 id = "option4"
+                 checked = "checked" />
+          <label for = "option1">Product Name</label>
           <input type = "radio"
                  name = "searchOptions"
                  value = "productSKU"
