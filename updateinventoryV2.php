@@ -122,6 +122,10 @@ if(isset($_POST['submit'])){
 
 	<link href="./css/styles.css" rel="stylesheet">
 	<link href="css/indexstyle.css" rel="stylesheet">
+	
+	<!-- jQuery from folder: -->
+	<script src="js/jquery-3.5.1.min.js"></script>
+
 	<title>Update Products</title>
 
 </head>
@@ -177,6 +181,8 @@ if(isset($_POST['submit'])){
         </p>       
       </fieldset>     
     </form>
+	<!-- Going to try to use jQuery to add dynamic result table inside this div later: -->
+	<div id="searchResults"></div>
 	<br></br>
 
 </main>
