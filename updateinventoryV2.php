@@ -7,15 +7,14 @@
 
 // Introducing separate search functionality, which would generate a table inside of the HTML
 if(isset($_POST['searchPress'])) {
-	$sql = "SELECT * FROM yellowteam.dbo.inventory WHERE ".$searchOption." = ?";
 	$searchOption = $_POST['searchOptions'];
-	$userInput = $_POST[''];
+	$sql = "SELECT * FROM yellowteam.dbo.inventory WHERE ".$searchOption." = ?";
+	$userInput = $_POST['searchInput'];
 	
-	// think about searching for everything in DB as an option maybe? either other radiobutton/allow wildstar
 	// sanitizing $searchOption (vulnerable radiobutton value) which can only be 4 strict strings:
-	if ($searchOption == 'productName' OR
-		$searchOption == 'productSKU' OR
-		$searchOption == 'itemDescription' OR
+	if ($searchOption == 'productName' ||
+		$searchOption == 'productSKU' ||
+		$searchOption == 'itemDescription' ||
 		$searchOption == 'price') 
 		{
 		// prepares our statement with connection info, all variables inside placeholders in sql:
@@ -42,25 +41,26 @@ if(isset($_POST['searchPress'])) {
 			 // $log = print_r( sqlsrv_errors(), true);   
 		}  
 	
+	echo "<script>alert('breakpoint reached!')</script>"
 	// Starting table headers, which need to be outside the loop to not be repeated each iteration:
-	echo "<table><tr>
+	/*echo "<table><tr>
 				 <th>Product Name</th>
 				 <th>Product SKU</th>
 				 <th>Item Description></th>
 				 <th>Price</th>
-				 </tr>" 
+				 </tr>" */
 				 
 	// could make <tr name or id = SQL TABLE ID>, for easy grabbing for update functionality later?
 	// now we need to load the results, generate a loop and have it echo off tables in the HTML here:
 	while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-		echo "<tr><td>".$row['productName']."</td>"
+		echo $row['productName'].", "
+			 $row['productSKU'].", "
+			 $row['itemDescription'].", "
+			 $row['price']."<br>";
+		/*echo "<tr><td>".$row['productName']."</td>"
 			 ."<td>".$row['productSKU']."</td>"
 			 ."<td>".$row['itemDescription']."</td>"
-			 ."<td>".$row['price']."</td>";
-	}
-	echo "</table>";
-	} else { 
-		echo '<script>console.log("Search yielded no results.\n")</script>'; 
+			 ."<td>".$row['price']."</td>";*/
 	}
 
 	// Closes the connection and also releases statement resources:
