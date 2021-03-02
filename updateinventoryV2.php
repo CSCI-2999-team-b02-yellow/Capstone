@@ -51,14 +51,13 @@ if(isset($_POST['searchPress'])) {
 				 </tr>" */
 				 
 	// could make <tr name or id = SQL TABLE ID>, for easy grabbing for update functionality later?
+	// $("#searchResults").html(""); or alternatively $("#searchResults").empty; should clear search results
 	// now we need to load the results, generate a loop and have it echo off tables in the HTML here:
-	// looks like this is working without the table stuff, but we have to use javascript to write to a specific div!!
-	// also not sure what's messed up with CSS, because dev view sees the echo, but nothing is seen on the page
 	while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-		echo $row['productName'].", "
+		echo '$"#searchResults").append('.$row['productName'].", "
 			 .$row['productSKU'].", "
 			 .$row['itemDescription'].", "
-			 .$row['price']."<br>";
+			 .$row['price']."<br>".');';
 		/*echo "<tr><td>".$row['productName']."</td>"
 			 ."<td>".$row['productSKU']."</td>"
 			 ."<td>".$row['itemDescription']."</td>"
