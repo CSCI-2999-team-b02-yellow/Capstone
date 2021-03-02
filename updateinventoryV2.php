@@ -53,16 +53,38 @@ if(isset($_POST['searchPress'])) {
 	// could make <tr name or id = SQL TABLE ID>, for easy grabbing for update functionality later?
 	// $("#searchResults").html(""); or alternatively $("#searchResults").empty; should clear search results
 	// now we need to load the results, generate a loop and have it echo off tables in the HTML here:
-	while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-		echo '$"#searchResults").append('.$row['productName'].", "
+	/* <script>
+	 * $(document).ready(function () {
+	 *    $("#searchResults").append();
+	 * });
+	 * </script>
+	 */
+	 
+	// TEST: NOT WORKING? to see jquery actually works: \ should escape ' characters
+	echo '<script>$(document.body).append(\'hello\');</script>';
+	
+	// TEST VERSION: working -- prints to top of screen
+		while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+		echo 
+			 $row['productName'].", "
 			 .$row['productSKU'].", "
 			 .$row['itemDescription'].", "
-			 .$row['price']."<br>".');';
-		/*echo "<tr><td>".$row['productName']."</td>"
-			 ."<td>".$row['productSKU']."</td>"
-			 ."<td>".$row['itemDescription']."</td>"
-			 ."<td>".$row['price']."</td>";*/
+			 .$row['price'].'<br>;';
 	}
+	
+	/* DISABLED: not working trying to figure out syntax
+	/* while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+		echo "<script>".
+			 '$(document).ready(function () {'.
+			 '$("#searchResults").append('.
+			 '"<p>"'.$row['productName'].", "
+			 .$row['productSKU'].", "
+			 .$row['itemDescription'].", "
+			 .$row['price'].'</p><br>"'.
+			 ');'.
+			 '});'.
+			 "</script>";
+	} */
 
 	// Closes the connection and also releases statement resources:
 	sqlsrv_free_stmt( $stmt);  
@@ -120,10 +142,9 @@ if(isset($_POST['submit'])){
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
 
 	<link href="./css/styles.css" rel="stylesheet">
-	<link href="css/indexstyle.css" rel="stylesheet">
-	
+
 	<!-- jQuery from folder: -->
-	<script src="js/jquery-3.5.1.min.js"></script>
+	<script src='js/jquery-3.5.1.min.js'></script>
 
 	<title>Update Products</title>
 
