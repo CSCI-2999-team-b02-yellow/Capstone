@@ -61,7 +61,8 @@ if(isset($_POST['searchPress'])) {
 	 */
 	 
 	// TEST: NOT WORKING? to see jquery actually works: \ should escape ' characters
-	echo '<script>$(document.body).append(\'hello\');</script>';
+	echo '<script>$(document).ready(function () {
+	$(document.body).append('."hello".')});</script>';
 	
 	// TEST VERSION: working -- prints to top of screen
 		while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
@@ -69,7 +70,7 @@ if(isset($_POST['searchPress'])) {
 			 $row['productName'].", "
 			 .$row['productSKU'].", "
 			 .$row['itemDescription'].", "
-			 .$row['price'].'<br>;';
+			 .$row['price'].'<br>';
 	}
 	
 	/* DISABLED: not working trying to figure out syntax
@@ -143,8 +144,10 @@ if(isset($_POST['submit'])){
 
 	<link href="./css/styles.css" rel="stylesheet">
 
-	<!-- jQuery from folder: -->
-	<script src='js/jquery-3.5.1.min.js'></script>
+	<!-- jQuery from folder ** something about this link is broken since CDN works: -->
+	<!-- <script src="js/jquery-3.5.1.min.js"></script> -->
+	<!-- jQuery from CDN: -->
+	<!-- script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
 
 	<title>Update Products</title>
 
@@ -212,7 +215,9 @@ if(isset($_POST['submit'])){
 		Service provided by YellowTeam 2021
 	</div>
 	</footer>
-
+	<script> $(document).ready(function () {
+	 $("#searchResults").append("<p>Server Side jquery insert</p>");
+	 });</script>
 </body>
 
 </html>
