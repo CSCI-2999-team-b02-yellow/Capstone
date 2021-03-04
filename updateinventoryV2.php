@@ -141,7 +141,7 @@ if(isset($_POST['submit'])){
 	<!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
 
-	<link href="./css/styles.css" rel="stylesheet">
+	<link href="css/indexstyle.css" rel="stylesheet">
 
 	<!-- jQuery from folder: -->
 	<script src='js/jquery-3.5.1.min.js'></script>
