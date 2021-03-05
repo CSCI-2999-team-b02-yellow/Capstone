@@ -109,7 +109,7 @@ Tomas Kasparaitis
 <div class="header">
       <div class="links">
       <a class="active" href="index.html">Home</a>
-      <a href="products.html">Products</a>
+      <a href="products.php">Products</a>
       <a href="addinventory.php">Add Inventory</a>
 	  <a href="updateinventory.php">Update Products</a>
 	  <a href="contactus.html">Contact Us</a>	  
