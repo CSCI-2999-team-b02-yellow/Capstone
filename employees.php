@@ -1,7 +1,7 @@
 <?php
 // checks if HTML element by the name of 'addInv' has been clicked
 // Note: PHP supports try catch blocks, error handling should be later rewritten using this logic
-if(isset($_POST['addInv'])){
+if(isset($_POST['addemployee'])){
 	
 	// SQLSRV are Microsoft developed drivers, PDO_SQLSRV or PDO are community developed drivers for MSSQL
 	// $serverName is just the URL our database is hosted on:
@@ -17,19 +17,19 @@ if(isset($_POST['addInv'])){
 		 echo '<script>console.log("Connection could not be established.\n");</script>';
 		 
 // placeholders (?) are used in SQL statements to prepare a statement & prevent SQL injection
-	$sql = "INSERT INTO yellowteam.dbo.employees (productName, productSKU, itemDescription, price)
+	$sql = "INSERT INTO yellowteam.dbo.employees (firstname, lastname, username, password)
 			VALUES (?, ?, ?, ?)";
 		
 	//----------------------------------------------------------------------------------------------------------------  
 	// Using $_POST['addInv'] to trigger form, and then using $_POST['name'] to pull user input into variables.
 	//----------------------------------------------------------------------------------------------------------------  
-	$productName = $_POST['employeefirstname'];
-	$productSKU = $_POST['employeelastname'];
-	$itemDescription = $_POST['username'];
-	$price = $_POST['password'];
+	$firstname = $_POST['employeefirstname'];
+	$lastname = $_POST['employeelastname'];
+	$username = $_POST['username'];
+	$password = $_POST['password'];
 	
 	// prepares our statement with connection info, all variables inside placeholders in sql:
-	$stmt = sqlsrv_prepare( $conn, $sql, array(&$productName, &$productSKU, &$itemDescription, &$price));
+	$stmt = sqlsrv_prepare( $conn, $sql, array(&$firstname, &$lastname, &$username, &$password));
 	
 	// checks the statement for errors, sqlsrv_prepare returns false if there's an error:
 	if( $stmt )  
@@ -64,7 +64,7 @@ if(isset($_POST['addInv'])){
   <meta charset="utf-8">
   <title>Employees</title>
   <meta name="author" content="Team Yellow">
-  <meta name="description" content="Nuts and bolts hardware company add products page">
+  <meta name="description" content="Nuts and bolts hardware company employees page">
   <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, products, add, add products">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
