@@ -114,6 +114,7 @@ Tomas Kasparaitis
 	  <a href="updateinventory.php">Update Products</a>
 	  <a href="contactus.html">Contact Us</a>	  
 	  <a href="aboutus.html">FAQ</a>
+	  <a href="employees.php">Employees</a>
       </div>
 	  
       <div class ="logo">
