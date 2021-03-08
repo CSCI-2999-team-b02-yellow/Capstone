@@ -101,10 +101,10 @@ if(isset($_POST['addemployee'])){
   <input type="text" id="employeelastname" name="employeelastname" value=""><br><br>
   
     <label for="username">Username:</label><br>
-  <input type="text" id="username" name="username" value=""><br>
+  <input type="text" id="username" name="username" value="" pattern="[a-z]"><br>
   
     <label for="password">Password:</label><br>
-  <input type="text" id="password" name="password" value=""><br>
+  <input type="text" id="password" name="password" value="" pattern=""(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*?[~`!@#$%\^&*()\-_=+[\]{};:\x27.,\x22\\|/?><])""><br>
   
   <input type="submit" name="addemployee" value="Create Employee Account">
   
