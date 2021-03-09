@@ -59,7 +59,7 @@ if(isset($_POST['addemployee'])){
 
 }
 ?>
-
+<html>
 <head>
   <meta charset="utf-8">
   <title>Employees</title>
