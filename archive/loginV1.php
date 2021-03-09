@@ -53,9 +53,6 @@ if(isset($_POST['submit'])) {
 		// Loads connection info, our sql, and parameters ($username) into the prepared statement
 		$stmt = sqlsrv_prepare($conn, $sql, array($username))
 		
-		// shouldn't we be loading $_POST['username'] & $_POST['password'] into variables, else #passwordcheck doesn't work?
-		// #passwordcheck feels weird anyway, doesn't seem to compare passwords, unless that's what password_verify does
-		
 		// checks the prepared statement for errors, sqlsrv_prepare returns false if there's an error;
 		// not sure if this is necessary in try-catch-finally block though, will check later -- maybe convert elses to throws?
 		if($stmt) {  
@@ -90,8 +87,10 @@ if(isset($_POST['submit'])) {
 		
 		// checks that password entered matches password in database;
 		
-		// what is password_verify, have to check, will need elseif/else statements for errors? #passwordcheck
-		if(password_verify($password, $hashed_password)){
+		// password_verify($password, $hash) takes 2 parameters and compares them, not sure about salt;
+		// need to reintroduce this to not store plain-text passwords for security purposes later:
+		// also not sure if to use equal (==) or strict equal (===) here?
+		if($password == $hashed_password){
 			// Password is correct, so start a new session -- we already had a new session, why are we doing this again?
 			// session_start();
 			// Store data in session variables
