@@ -7,11 +7,11 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
 
 // starts a new session
 session_start();
-// checks if the user is already logged in
+// checks if the user is already logged in, if they are redirects to employees.php
 // https://medium.com/@sherryhsu/session-vs-token-based-authentication-11a6c5ac45e4 thread for looking into security
 // this session check feels weird, we set it to true, but why do we check that it exists?
 if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
-    header("location: index.html");
+    header("location: employees.php");
     exit;
 }
 
@@ -49,7 +49,7 @@ if(isset($_POST['submit'])) {
 	// Introducing try, catch, finally statement to always close conn/free resources, and handle errors:
 	try {
 		// Outline of the SQL statement, ? is used for user input to prevent SQL injection
-		$sql = "SELECT ID, username, password FROM yellowteam.dbo.users WHERE username = ?";
+		$sql = "SELECT employeeID, firstname, lastname, username, password FROM yellowteam.dbo.employees WHERE username = ?";
 		// loading username/password from form name to php variable
 		$username = $_POST['username'];
 		$password = $_POST['password'];
@@ -83,9 +83,11 @@ if(isset($_POST['submit'])) {
 		// sqlsrv_fetch_array stores results, and grabs each row, which we confirmed is only 1 before!
 		// this saves sessionID, username, password to variables; will need a hashpassword method to convert $row['password'] for comparison;
 		while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-			$ID = $row['ID'];
+			$employeeID = $row['employeeID'];
 			$username = $row['username'];
 			$hashed_password = $row['password'];
+			$firstname = $row['firstname'];
+			$lastname = $row['lastname'];
 		}
 		
 		// checks that password entered matches password in database;
@@ -93,16 +95,29 @@ if(isset($_POST['submit'])) {
 		// password_verify($password, $hash) takes 2 parameters and compares them, not sure about salt;
 		// need to reintroduce this to not store plain-text passwords for security purposes later:
 		// also not sure if to use equal (==) or strict equal (===) here?
-		if($password == $hashed_password){
+		if($password === $hashed_password){
+			// helper function for displaying notices:
+			function function_alert($message) { 
+			  
+				// Display the alert box  
+				echo "<script>alert('$message');</script>"; 
+			}
+			
 			// Password is correct, so start a new session -- we already had a new session, why are we doing this again?
 			// session_start();
 			// Store data in session variables
 			$_SESSION["loggedin"] = true;
-			$_SESSION["ID"] = $ID;
-			$_SESSION["username"] = $username;                            
-			// Redirect user to welcome page
-			header("location: index.html");
-		} 
+			$_SESSION["ID"] = $employeeID;
+			$_SESSION["username"] = $username;
+			// redirect is instant, need to read link below to fix this:
+			// https://stackoverflow.com/questions/18305258/display-message-before-redirect-to-other-page
+			function_alert("Welcome ".$firstname." ".$lastname."!");
+			// Redirect user to employees page
+			header("location: employees.php");
+		} else {
+			$password_err = "The password you've entered is not correct.";
+			// also need to introduce datetime stamps to add to the database under a failed recent login table:
+		}
 	} catch (exception $e) {
 		// Need to look up and introduce error handling logic here:
 	} finally {

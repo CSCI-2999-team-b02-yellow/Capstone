@@ -1,5 +1,31 @@
 <?php
 
+// Adding code to redirect to login page if employee is not logged in:
+session_start();
+if(!isset($_SESSION['loggedin'])){
+   header("location: loginV1.php");
+}
+
+//adding logout button as well as PHP logic to execute it:
+if(isset($_POST['logout'])) {
+	// Unset all of the session variables.
+	$_SESSION = array();
+
+	// If it's desired to kill the session, also delete the session cookie.
+	// Note: This will destroy the session, and not just the session data!
+	if (ini_get("session.use_cookies")) {
+		$params = session_get_cookie_params();
+		setcookie(session_name(), '', time() - 42000,
+			$params["path"], $params["domain"],
+			$params["secure"], $params["httponly"]
+		);
+	}
+
+	// Finally, destroy the session.
+	session_destroy();
+}
+
+
 // SQLSRV are Microsoft developed drivers, PDO_SQLSRV or PDO are community developed drivers for MSSQL
 // $serverName is just the URL our database is hosted on:
 $serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
@@ -96,6 +122,9 @@ if(isset($_POST['addemployee'])){
 	  <a href="contactus.html">Contact Us</a>	  
 	  <a href="aboutus.html">FAQ</a>
 	  <a href="employees.php">Employees</a>
+	  <div><form action="" method="POST">
+	  <button name="logout" class="btn btn-dark">Log out</button>
+	  </form></div>
       </div>
 	  
       
@@ -118,7 +147,8 @@ if(isset($_POST['addemployee'])){
   <input type="text" id="employeelastname" name="employeelastname" placeholder="Last Name" value=""><br>
   
     <label for="username">Username:</label><br>
-  <input type="text" id="username" name="username" value="" placeholder="Username" pattern="[a-z].{1,}" title="username can only be lowercase with no spaces."><br>
+	<!-- old pattern for username: "[a-z].{1,}" new pattern: ^[a-z]*$ -->
+  <input type="text" id="username" name="username" value="" placeholder="Username" pattern="^[a-z]*$" title="username can only be lowercase with no spaces."><br>
   
     <label for="password">Password:</label><br>
   <input type="text" id="password" name="password" value="" placeholder="Password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*?[~`!@#$%\^&*()\-_=+[\]{};:\x27.,\x22\\|/?><]).{1,}" title="Password must have at least one lowercase letter, one uppercase, one number, and a special character."><br>
@@ -129,7 +159,6 @@ if(isset($_POST['addemployee'])){
   
 	<br>
   <button name="addemployee" value="Create Employee Account" class="btn btn-dark">Create Employee Account</button>
-
   
   </form>
 </div>
