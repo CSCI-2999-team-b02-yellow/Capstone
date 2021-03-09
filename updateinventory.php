@@ -64,7 +64,6 @@ if(isset($_POST['submit'])){
         <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
 
-        <link href="./css/styles.css" rel="stylesheet">
         <link href="css/indexstyle.css" rel="stylesheet">
         <title>Update Products</title>
 
@@ -80,6 +79,7 @@ if(isset($_POST['submit'])){
 	  <a href="updateinventory.php">Update Products</a>
 	  <a href="contactus.html">Contact Us</a>
       <a href="aboutus.html">FAQ</a>
+	  <a href="employees.php">Employees</a>
       </div>
       <div class ="logo">
       <img src="inverselogo.png" alt="Italian Trulli" style="width:4.5%;height:4.5%;">

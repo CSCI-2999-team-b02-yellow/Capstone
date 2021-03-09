@@ -102,7 +102,8 @@ Tomas Kasparaitis
   <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, products, add, add products">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link href="css/addinventorystyle.css" rel="stylesheet">
+  <link href="css/indexstyle.css" rel="stylesheet">
+
 </head>
 
 <body>
@@ -114,6 +115,7 @@ Tomas Kasparaitis
 	  <a href="updateinventory.php">Update Products</a>
 	  <a href="contactus.html">Contact Us</a>	  
 	  <a href="aboutus.html">FAQ</a>
+	  <a href="employees.php">Employees</a>
       </div>
 	  
       <div class ="logo">
