@@ -21,26 +21,28 @@ if(isset($_POST['submit'])){
 	
 	// Other conditions to update the database.	
 	}else{
-		$selected1 = $_POST['product'];
+		$selected1 = implode("', '", $_POST['product']);
 		$selected2 = $_POST['update'];
 		
 		// Check wich part the user want to change, and use the SQL query to update it in the database.
 		
 		if($selected2 == "description"){
 			
-			$selected3 = $_POST['newUpdate'];		
-			sqlsrv_query( $conn, "UPDATE inventory SET itemDescription = '" .$selected3. "' WHERE productName='" .$selected1. "'");
+			$selected3 = $_POST['newUpdate'];
+			
+			sqlsrv_query( $conn, "UPDATE inventory SET itemDescription = '" .$selected3. "' WHERE productSKU in ('" .$selected1. "')");
 								
 		}elseif($selected2 == "price"){
 			
+
 			$selected3 = (float)$_POST['newUpdate'];
-			
-			sqlsrv_query( $conn, "UPDATE inventory SET price = '" .$selected3. "' WHERE productName ='" .$selected1. "'");
+	
+			sqlsrv_query( $conn, "UPDATE inventory SET price = '" .$selected3. "' WHERE productSKU in ('" .$selected1. "')");
 						
 		}elseif($selected2 == "sku"){
 			
 			$selected3 = $_POST['newUpdate'];
-			sqlsrv_query( $conn, "UPDATE inventory SET productSKU = '" .$selected3. "' WHERE productName ='" .$selected1. "'");
+			sqlsrv_query( $conn, "UPDATE inventory SET productSKU = '" .$selected3. "' WHERE productSKU in ('" .$selected1. "')");
 						
 		}else{
 			
@@ -83,29 +85,22 @@ if(isset($_POST['submit'])){
       </div>
       
     </div>
+
 	<br><br>
 
-
-        <main class="container p-5">
-				
-			<div>
-				<b> Update Products <b>
-			</div>
-			<br>
-
+	
         <main class="container p-5">
 		
+<h2> Update Products </h2>
 
-
+<input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search/Filter for a product.." title="Type in a Product Name"> <br>
+			Please select the products to update<br><br>
 			<form action="" method="POST">
-			  <select name='product'>
-			  
-				<option value="">Choose the product to update</option>
-			  
-				
+			<ul id="myUL">
+							
 				<?php
 				// using php in the <select> to show dynamically the product in the webpage.
-				$sql = "SELECT * FROM inventory";
+				$sql = "SELECT * FROM inventory ORDER BY productName";
 
 				$query = sqlsrv_query( $conn, $sql);
 				if( $query === false ) {
@@ -115,17 +110,19 @@ if(isset($_POST['submit'])){
 				while( $products = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC) ) {
 				
 						$product=$products["productName"];?>
-						<option value="<?php echo $product; ?>"><?php
-							echo $product;?>
-						</option>
-					
+					 <li><a> 
+						<input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
+						<label for=""> <?php echo $product. " " .$products["productSKU"];?> </label>
+						</a></li>
+						
+
+		
 				<?php
 				}?>
 								
-			  </select>
-			  <br><br>
-			 
 
+			  <br>
+			 
 			  <select name="update">
 				<option value="">Choose what to change from the product</option>
 				<option value="sku">Product SKU</option>
@@ -137,7 +134,7 @@ if(isset($_POST['submit'])){
 			  <br><br>
 			  <button name="submit" class="btn btn-dark">Update</button>
 			</form>
-			<br></br>
+			<br>
 	
         </main>
 
@@ -146,6 +143,25 @@ if(isset($_POST['submit'])){
             Service provided by YellowTeam 2021
 		</div>
         </footer>
+
+<script>
+function myFunction() {
+    var input, filter, ul, li, a, i, txtValue;
+    input = document.getElementById("myInput");
+    filter = input.value.toUpperCase();
+    ul = document.getElementById("myUL");
+    li = ul.getElementsByTagName("li");
+    for (i = 0; i < li.length; i++) {
+        a = li[i].getElementsByTagName("a")[0];
+        txtValue = a.textContent || a.innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            li[i].style.display = "";
+        } else {
+            li[i].style.display = "none";
+        }
+    }
+}
+</script>
 
     </body>
 
