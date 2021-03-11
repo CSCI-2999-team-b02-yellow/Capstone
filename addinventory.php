@@ -118,9 +118,6 @@ Tomas Kasparaitis
 	  <a href="employees.php">Employees</a>
       </div>
 	  
-      <div class ="logo">
-      <img src="inverselogo.png" alt="Italian Trulli" style="width:4.5%;height:4.5%;">
-      </div>
 </div>
 
 <div class="content">  
