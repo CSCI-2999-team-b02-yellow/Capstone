@@ -1,12 +1,14 @@
 <?php
-
+   
 	$serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
 	// $connection info to the database.
 	$connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
 	$conn = sqlsrv_connect( $serverName, $connectionInfo);
-
+	
+ // if condition when the Submit butoon is pushed. 
 if(isset($_POST['submit'])){
 	
+	// function to display a message alert
 	function function_alert($message) { 
       
 		// Display the alert box  
@@ -50,8 +52,8 @@ if(isset($_POST['submit'])){
 			
 		}
 		
-	 // Function call 
-	function_alert("Updated!  ". $selected1 . ", " . $selected2 . ", to: " . $selected3);
+	 // Function call when products are updated
+	function_alert("Updated!");
 	
 	}
 }
