@@ -55,7 +55,7 @@ if(isset($_POST['submit'])) {
 
 	    // Outline of the SQL statement, ? is used for user input to prevent SQL injection
         // this feels vulnerable to some sort of dump though it's server-side --> we should probably select things only if username & password match
-		$sql = "SELECT ID, fullname, username, password, accesslevel FROM yellowteam.dbo.user WHERE username = ?";
+		$sql = "SELECT ID, fullname, username, password, accesslevel FROM yellowteam.dbo.users WHERE username = ?";
 
 		// loading username/password from HTML form name to PHP variables
 		$username = $_POST['username'];
@@ -120,12 +120,10 @@ if(isset($_POST['submit'])) {
 
 			// TODO: passwords match NOW we check if they are on a banned timeout!!!
 
-			// redirect is instant, need to read link below to fix this:
-            // https://stackoverflow.com/questions/18305258/display-message-before-redirect-to-other-page
-			function_alert("Welcome ".$fullname."!");
-
-			// Redirect user to employees page
-			header("location: employees.php");
+			// Redirects user to employees.php. Note this must be done in JavaScript! Hope you've got it installed
+            // Refer to https://stackoverflow.com/questions/18305258/display-message-before-redirect-to-other-page for WHY:
+            echo "Welcome ".$fullname."!";
+            echo "<script>setTimeout(\"location.href = 'employees.php';\",2500);</script>";
 
 			// accesslevel = 1 is customers trying to login: customers.php is a placeholder
 		} elseif ($password === $hashed_password && $accesslevel === 1) {
