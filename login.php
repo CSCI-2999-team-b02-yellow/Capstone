@@ -7,34 +7,38 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
 
 // starts a new session
 session_start();
-// checks if the user is already logged in, if they are redirects to employees.php
+
 // https://medium.com/@sherryhsu/session-vs-token-based-authentication-11a6c5ac45e4 thread for looking into security
 // this session check feels weird, we set it to true, but why do we check that it exists?
-if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
-    header("location: employees.php");
+
+// checks if the user is already logged in, if they are redirects based on access level
+if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+    // all access levels greater than 1 (employee+) goes to employees.php
+    if ($_SESSION["accesslevel"] > 1) {
+        header("location: employees.php");
+    } else {
+        header("location: customers.php");
+    }
     exit;
 }
 
-// This is setting error and login fields to blank; interestingly PHP evaluates this as $password = ""; $username = $password; in that order!
+// This is setting error and login fields to blank;
+// Note: PHP variables are assigned by value, passed to functions by value and when containing/representing objects are passed by reference.
 $username = $password = "";
-$username_err = $password_err = ""; 
+$username_err = $password_err = "";
 
-//$password_err is getting triggered despite a username existing
-
-// Processing form data when form is submitted -- editing out for now as I'm not sure how this works:
-// if($_SERVER["REQUEST_METHOD"] == "POST"){
-	
-// a little bit more confident this works:
+// isset listens to see if a button with the name 'submit' is clicked inside HTML:
 if(isset($_POST['submit'])) {
 	
     // Check if username & password are empty; introduced returns to not execute SQL if errors are found:
-    if(empty(trim($_POST["username"]))){
+    // Note: need to check if the use of trim is even needed here, empty should be sophisticated enough to check for multiple spaces?
+    if(empty(trim($_POST["username"]))) {
         $username_err = "Please enter username.";
 		return;
-    } elseif(empty(trim($_POST["password"]))){
+    } elseif(empty(trim($_POST["password"]))) {
         $password_err = "Please enter your password.";
 		return;
-    } else{
+    } else {
         $username = trim($_POST["username"]);
         $password = trim($_POST["password"]);
     }
@@ -48,11 +52,15 @@ if(isset($_POST['submit'])) {
 	 
 	// Introducing try, catch, finally statement to always close conn/free resources, and handle errors:
 	try {
-		// Outline of the SQL statement, ? is used for user input to prevent SQL injection
-		$sql = "SELECT employeeID, firstname, lastname, username, password FROM yellowteam.dbo.employees WHERE username = ?";
-		// loading username/password from form name to php variable
+
+	    // Outline of the SQL statement, ? is used for user input to prevent SQL injection
+        // this feels vulnerable to some sort of dump though it's server-side --> we should probably select things only if username & password match
+		$sql = "SELECT ID, fullname, username, password, accesslevel FROM yellowteam.dbo.user WHERE username = ?";
+
+		// loading username/password from HTML form name to PHP variables
 		$username = $_POST['username'];
 		$password = $_POST['password'];
+
 		// Loads connection info, our sql, and parameters ($username) into the prepared statement
 		$stmt = sqlsrv_prepare($conn, $sql, array($username));
 		
@@ -72,49 +80,60 @@ if(isset($_POST['submit'])) {
 		}
 		
 		// check that username returns only 1 result row -- just extra precaution against any db issues;
+		// right now this is only logging issues, not preventing login
 		if(sqlsrv_num_rows($stmt) != 1) {
-			// if returned rows are not 1 throw exception on 0 or on more than 1
-			// introduce catches for thrown exceptions
+			// introduce: if returned rows are not 1 throw custom exception
 			echo '<script>console.log("Returned rows not equal to one!\n")</script>';  
 		} else {  
 			 echo '<script>console.log("Row check passed.")</script>';
 		}
 		
-		// sqlsrv_fetch_array stores results, and grabs each row, which we confirmed is only 1 before!
+		// sqlsrv_fetch_array stores results, and grabs each row
 		// this saves sessionID, username, password to variables; will need a hashpassword method to convert $row['password'] for comparison;
 		while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-			$employeeID = $row['employeeID'];
+			$ID = $row['ID'];
+			$fullname = $row['fullname'];
 			$username = $row['username'];
 			$hashed_password = $row['password'];
-			$firstname = $row['firstname'];
-			$lastname = $row['lastname'];
+			$accesslevel = $row['accesslevel'];
 		}
-		
-		// checks that password entered matches password in database;
-		
-		// password_verify($password, $hash) takes 2 parameters and compares them, not sure about salt;
-		// need to reintroduce this to not store plain-text passwords for security purposes later:
-		// also not sure if to use equal (==) or strict equal (===) here?
-		if($password === $hashed_password){
+
+        /* Will need to reintroduce password_verify($password, $hash) which does a comparison
+         * between plaintext password and the hash in the database. Need to see what method
+         * can be used to convert plaintext to hash, so all registered users make hashed passwords.
+         */
+
+        // checks form password matches database password, and that user access is at least lvl 2
+		if($password === $hashed_password && $accesslevel > 1) {
+
 			// helper function for displaying notices:
-			function function_alert($message) { 
-			  
-				// Display the alert box  
+			function function_alert($message) {
 				echo "<script>alert('$message');</script>"; 
 			}
-			
-			// Password is correct, so start a new session -- we already had a new session, why are we doing this again?
-			// session_start();
+
 			// Store data in session variables
 			$_SESSION["loggedin"] = true;
-			$_SESSION["ID"] = $employeeID;
+			// why are we storing session id if we don't ever use it?
+			$_SESSION["ID"] = $ID;
 			$_SESSION["username"] = $username;
+			$_SESSION["accesslevel"] = $accesslevel;
+
+			// TODO: passwords match NOW we check if they are on a banned timeout!!!
+
 			// redirect is instant, need to read link below to fix this:
-			// https://stackoverflow.com/questions/18305258/display-message-before-redirect-to-other-page
-			function_alert("Welcome ".$firstname." ".$lastname."!");
+            // https://stackoverflow.com/questions/18305258/display-message-before-redirect-to-other-page
+			function_alert("Welcome ".$fullname."!");
+
 			// Redirect user to employees page
 			header("location: employees.php");
-		} else {
+
+			// accesslevel = 1 is customers trying to login: customers.php is a placeholder
+		} elseif ($password === $hashed_password && $accesslevel === 1) {
+            header("location: customers.php");
+        } else {
+		    // TODO: implement logic to store failed login attempts in fail table
+
+
 			$password_err = "The password you've entered is not correct.";
 			// also need to introduce datetime stamps to add to the database under a failed recent login table:
 		}
@@ -151,7 +170,6 @@ if(isset($_POST['submit'])) {
                 <input type="password" name="password" class="form-control">
                 <span class="help-block"><?php echo $password_err; ?></span>
             </div>
-			<!-- added name="submit" so our PHP can trigger off the button, not sure about $_SERVER functionality -->
             <div class="form-group">
                 <input type="submit" name="submit" class="btn btn-primary" value="Login">
             </div>

@@ -3,7 +3,7 @@
 // Adding code to redirect to login page if employee is not logged in:
 session_start();
 if(!isset($_SESSION['loggedin'])){
-   header("location: loginV1.php");
+   header("location: login.php");
 }
 
 //adding logout button as well as PHP logic to execute it:
