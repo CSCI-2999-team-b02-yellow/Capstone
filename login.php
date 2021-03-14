@@ -123,93 +123,80 @@ if(isset($_POST['submit'])) {
 			// Redirects user to employees.php. Note this must be done in JavaScript! Hope you've got it installed
             // Refer to https://stackoverflow.com/questions/18305258/display-message-before-redirect-to-other-page for WHY:
             echo '<script>alert("Welcome '.$fullname.' !")</script>';
-            echo "<script>setTimeout(\"location.href = 'employees.php';\",2500);</script>";
+            echo "<script>setTimeout(\"location.href = 'employees.php';\",400);</script>";
             // Extra reading: https://stackoverflow.com/questions/15466802/how-can-i-auto-hide-alert-box-after-it-showing-it
             // That could introduce an auto-closing alert box instead of it needing to have OK clicked to go away
 
 			// accesslevel = 1 is customers trying to login: customers.php is a placeholder
 		} elseif ($password === $hashed_password && $accesslevel === 1) {
-            header("location: customers.php");
+            echo '<script>alert("Welcome '.$fullname.' !")</script>';
+            echo "<script>setTimeout(\"location.href = 'customers.php';\",400);</script>";
         } else {
 		    // This begins the logic for dealing with failed logins due to wrong password:
             //----------------------------------------------------------------------------------------------------------------
-            // Logical Step #1: We query the database, and get all failed login/block start info:
+            // Logical Step #1: We record the failed login attempt in the database and display wrong password error:
             //----------------------------------------------------------------------------------------------------------------
-            $sql = "SELECT * FROM yellowteam.dbo.failedlogin WHERE username = ?";
+            $password_err = "The password you've entered is not correct.";
 
-            // Loads connection info, our sql, and parameters ($username) into the prepared statement
-            // Note: variables have been already loaded from POST previously
+            $sql = "INSERT INTO yellowteam.dbo.failedlogin (username, failedlogin) VALUES (?, CURRENT_TIMESTAMP)";
             $stmt = sqlsrv_prepare($conn, $sql, array($username));
-            // use the prepared statement on the database: returns true/false;
             if(sqlsrv_execute($stmt)) {
-                echo '<script>console.log("Fail Step1 fetch statement executed.\n")</script>';
+                echo '<script>console.log("Successfully logged failed login attempt.\n")</script>';
             } else {
-                echo '<script>console.log("Error in executing Fail Step1 fetch statement.\n")</script>';
-            }
-
-            while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-                $failedlogin1 = $row['failedlogin1'];
-                $failedlogin2 = $row['failedlogin2'];
-                $failedlogin3 = $row['failedlogin3'];
-                $blockstart = $row['blockstart'];
+                echo '<script>console.log("Error in logging failed login attempt.\n")</script>';
             }
 
             //----------------------------------------------------------------------------------------------------------------
-            // Logical Step #2: If the blockstart is not null, it can either be active or expired, which we handle here:
+            // Logical Step #2: We query the database and request the 3 most recent logins:
             //----------------------------------------------------------------------------------------------------------------
-            if ($blockstart !== null) {
-                // sql statement that gets current time vs. blockstart in seconds (15 min * 60 sec = 900)
-                $sql = "SELECT DATEDIFF(second, (SELECT blockstart FROM yellowteam.dbo.failedlogin WHERE username = ?), CURRENT_TIMESTAMP) AS difference";
+            $sql = "SELECT TOP 3 FROM yellowteam.dbo.failedlogin ORDER BY failedlogin WHERE username = ? DESC";
+            $stmt = sqlsrv_prepare($conn, $sql, array($username));
+            if(sqlsrv_execute($stmt)) {
+                echo '<script>console.log("Successfully retrieved top 3 failed login attempts.\n")</script>';
+            } else {
+                echo '<script>console.log("Error in retrieving top 3 failed login attempts.\n")</script>';
+            }
 
-                // Loads connection info, our sql, and parameters ($username) into the prepared statement
-                // Note: variables have been already loaded from POST previously
-                $stmt = sqlsrv_prepare($conn, $sql, array($username));
-                // use the prepared statement on the database: returns true/false;
-                if(sqlsrv_execute($stmt)) {
-                    echo '<script>console.log("Fail Step2 fetch statement executed.\n")</script>';
-                } else {
-                    echo '<script>console.log("Error in executing Fail Step2 fetch statement.\n")</script>';
-                }
-
-                // store difference as PHP variable
+            //----------------------------------------------------------------------------------------------------------------
+            // Logical Step #3: We take the difference in seconds of current timestamp and last 3 login attempts.
+            // Note: we have to check that 3 login attempts were returned! First/second time fails shouldn't trigger.
+            //----------------------------------------------------------------------------------------------------------------
+            $numberOfRows = sqlsrv_num_rows($stmt);
+            if ($numberOfRows === 3) {
+                // creating an array to store failed login attempt datetimes:
+                $failedlogin = array();
                 while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-                    $difference = $row['difference'];
+                    // have to create datetime object out of database datetime string so we can take date_diff later:
+                    $failedlogin = date_create($row['accesslevel']);
                 }
 
-                // check if 15 minutes have passed since block for failed logins started
-                if ($difference < 900) {
-                    $seconds = 900 - $difference;
-                    echo '<script>alert("Failed logins exceeded. Please wait'.$seconds.'seconds to login.")</script>';
-                    return;
-                } elseif ($difference >= 900) {
-                    // 15 minutes minutes are over, time to clear the block by setting to null:
-                    $sql = "UPDATE yellowteam.dbo.failedlogin SET blockstart = NULL WHERE username = ?";
-                    $stmt = sqlsrv_prepare($conn, $sql, array($username));
-                    if(sqlsrv_execute($stmt)) {
-                        echo '<script>console.log("Fail Step2 update statement executed.\n")</script>';
-                    } else {
-                        echo '<script>console.log("Error in executing Fail Step2 update statement.\n")</script>';
+                // also getting current time (datetime) from the database:
+                $sql = "SELECT CURRENT_TIMESTAMP AS currentTime";
+                $stmt = sqlsrv_prepare($conn, $sql);
+                while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+                    // have to create datetime object out of database datetime string so we can take date_diff later:
+                    $currentTime = date_create($row['currentTime']);
+                }
+
+                // both php & mssql server have datediff functions, using PHP makes it easier (less SQL statements):
+                $difference = array();
+                foreach($failedlogin as $failTime) {
+                    // info on formatting date_diff strings: https://www.php.net/manual/en/function.date-diff.php
+                    // in this case we are taking the difference between current time and stored time in seconds
+                    $difference = (date_diff($failTime, $currentTime))->format('%s');
+                }
+
+                // going to count how many of the 3 most recent fails are actually within 15 minutes * 60 seconds (900 seconds)
+                $count = 0;
+                foreach($difference as $value) {
+                    if ($value < 900) {
+                        $count++;
                     }
                 }
-            }
-
-            //----------------------------------------------------------------------------------------------------------------
-            // Logical Step #3: Check all datetimes to make sure they are recent (within 15 minutes), null them if not
-            //----------------------------------------------------------------------------------------------------------------
-            if ($failedlogin1 !== null) {
 
             }
-            if ($failedlogin2 !== null) {
 
-            }
-            if ($failedlogin3 !== null) {
 
-            }
-            // TODO: check that all failed login times are current, if they are not set them to null
-            // TODO:
-
-			$password_err = "The password you've entered is not correct.";
-			// also need to introduce datetime stamps to add to the database under a failed recent login table:
 		}
 	} catch (exception $e) {
 		// Need to look up and introduce error handling logic here:
