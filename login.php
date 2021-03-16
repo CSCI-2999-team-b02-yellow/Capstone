@@ -30,8 +30,7 @@ $username_err = $password_err = "";
 // isset listens to see if a button with the name 'submit' is clicked inside HTML:
 if(isset($_POST['submit'])) {
 	
-    // Check if username & password are empty; introduced returns to not execute SQL if errors are found:
-    // Note: need to check if the use of trim is even needed here, empty should be sophisticated enough to check for multiple spaces?
+    // Check if username & password are empty (trim is necessary); return prevents other code from executing if there's an error:
     if(empty(trim($_POST["username"]))) {
         $username_err = "Please enter username.";
 		return;
@@ -105,39 +104,39 @@ if(isset($_POST['submit'])) {
 
         // checks form password matches database password, and that user access is at least lvl 2
 		if($password === $hashed_password && $accesslevel > 1) {
-
-			// helper function for displaying notices:
-			function function_alert($message) {
-				echo "<script>alert('$message');</script>"; 
-			}
-
-			// Store data in session variables
-			$_SESSION["loggedin"] = true;
-			// why are we storing session id if we don't ever use it?
-			$_SESSION["ID"] = $ID;
-			$_SESSION["username"] = $username;
-			$_SESSION["accesslevel"] = $accesslevel;
-
-			// TODO: passwords match NOW we check if they are on a banned timeout!!!
-
-			// Redirects user to employees.php. Note this must be done in JavaScript! Hope you've got it installed
-            // Refer to https://stackoverflow.com/questions/18305258/display-message-before-redirect-to-other-page for WHY:
-            echo '<script>alert("Welcome '.$fullname.' !")</script>';
-            echo "<script>setTimeout(\"location.href = 'employees.php';\",400);</script>";
-            // Extra reading: https://stackoverflow.com/questions/15466802/how-can-i-auto-hide-alert-box-after-it-showing-it
-            // That could introduce an auto-closing alert box instead of it needing to have OK clicked to go away
-
-			// accesslevel = 1 is customers trying to login: customers.php is a placeholder
+            $banTime = failCheck($conn, $username);
+            if ($banTime === null) {
+                // Store data in session variables
+                $_SESSION["loggedin"] = true;
+                // why are we storing session id if we don't ever use it?
+                $_SESSION["ID"] = $ID;
+                $_SESSION["username"] = $username;
+                $_SESSION["accesslevel"] = $accesslevel;
+                welcomeRedirect($fullname, employees.php);
+            } else {
+                $minutes = $banTime / 60;
+                $seconds = $banTime % 60;
+                echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.')</script>";
+            }
 		} elseif ($password === $hashed_password && $accesslevel === 1) {
-            echo '<script>alert("Welcome '.$fullname.' !")</script>';
-            echo "<script>setTimeout(\"location.href = 'customers.php';\",400);</script>";
+            $banTime = failCheck($conn, $username);
+            if ($banTime === null) {
+                // Store data in session variables
+                $_SESSION["loggedin"] = true;
+                // why are we storing session id if we don't ever use it?
+                $_SESSION["ID"] = $ID;
+                $_SESSION["username"] = $username;
+                $_SESSION["accesslevel"] = $accesslevel;
+                // customers.php is a placeholder, we can rename the URL once a page is established
+                welcomeRedirect($fullname, customers.php);
+            } else {
+                $minutes = $banTime / 60;
+                $seconds = $banTime % 60;
+                echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.')</script>";
+            }
         } else {
-		    // This begins the logic for dealing with failed logins due to wrong password:
-            //----------------------------------------------------------------------------------------------------------------
-            // Logical Step #1: We record the failed login attempt in the database and display wrong password error:
-            //----------------------------------------------------------------------------------------------------------------
+            // if the password is wrong, display error message & log the datetime stamp in the database:
             $password_err = "The password you've entered is not correct.";
-
             $sql = "INSERT INTO yellowteam.dbo.failedlogin (username, failedlogin) VALUES (?, CURRENT_TIMESTAMP)";
             $stmt = sqlsrv_prepare($conn, $sql, array($username));
             if(sqlsrv_execute($stmt)) {
@@ -146,57 +145,13 @@ if(isset($_POST['submit'])) {
                 echo '<script>console.log("Error in logging failed login attempt.\n")</script>';
             }
 
-            //----------------------------------------------------------------------------------------------------------------
-            // Logical Step #2: We query the database and request the 3 most recent logins:
-            //----------------------------------------------------------------------------------------------------------------
-            $sql = "SELECT TOP 3 FROM yellowteam.dbo.failedlogin ORDER BY failedlogin WHERE username = ? DESC";
-            $stmt = sqlsrv_prepare($conn, $sql, array($username));
-            if(sqlsrv_execute($stmt)) {
-                echo '<script>console.log("Successfully retrieved top 3 failed login attempts.\n")</script>';
-            } else {
-                echo '<script>console.log("Error in retrieving top 3 failed login attempts.\n")</script>';
+            // call failCheck() function to see if it returns null or the time remaining until login ban expires:
+            $banTime = failCheck($conn, $username);
+            if ($banTime !== null) {
+                $minutes = $banTime / 60;
+                $seconds = $banTime % 60;
+                echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.')</script>";
             }
-
-            //----------------------------------------------------------------------------------------------------------------
-            // Logical Step #3: We take the difference in seconds of current timestamp and last 3 login attempts.
-            // Note: we have to check that 3 login attempts were returned! First/second time fails shouldn't trigger.
-            //----------------------------------------------------------------------------------------------------------------
-            $numberOfRows = sqlsrv_num_rows($stmt);
-            if ($numberOfRows === 3) {
-                // creating an array to store failed login attempt datetimes:
-                $failedlogin = array();
-                while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-                    // have to create datetime object out of database datetime string so we can take date_diff later:
-                    $failedlogin = date_create($row['accesslevel']);
-                }
-
-                // also getting current time (datetime) from the database:
-                $sql = "SELECT CURRENT_TIMESTAMP AS currentTime";
-                $stmt = sqlsrv_prepare($conn, $sql);
-                while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-                    // have to create datetime object out of database datetime string so we can take date_diff later:
-                    $currentTime = date_create($row['currentTime']);
-                }
-
-                // both php & mssql server have datediff functions, using PHP makes it easier (less SQL statements):
-                $difference = array();
-                foreach($failedlogin as $failTime) {
-                    // info on formatting date_diff strings: https://www.php.net/manual/en/function.date-diff.php
-                    // in this case we are taking the difference between current time and stored time in seconds
-                    $difference = (date_diff($failTime, $currentTime))->format('%s');
-                }
-
-                // going to count how many of the 3 most recent fails are actually within 15 minutes * 60 seconds (900 seconds)
-                $count = 0;
-                foreach($difference as $value) {
-                    if ($value < 900) {
-                        $count++;
-                    }
-                }
-
-            }
-
-
 		}
 	} catch (exception $e) {
 		// Need to look up and introduce error handling logic here:
@@ -205,6 +160,74 @@ if(isset($_POST['submit'])) {
 		sqlsrv_free_stmt($stmt);
 		sqlsrv_close($conn);
 	}
+}
+
+function welcomeRedirect($fullname, $url) {
+    // Redirects user to a specific URL. Note this must be done in JavaScript! Hope you've got it installed
+    // Refer to https://stackoverflow.com/questions/18305258/display-message-before-redirect-to-other-page for WHY:
+    echo '<script>alert("Welcome '.$fullname.' !")</script>';
+    echo "<script>setTimeout(\"location.href = '$url';\",400);</script>";
+    // Extra reading: https://stackoverflow.com/questions/15466802/how-can-i-auto-hide-alert-box-after-it-showing-it
+    // That could introduce an auto-closing alert box instead of it needing to have OK clicked to go away
+}
+
+function failCheck($conn, $username) {
+    // We query the database and request the 3 most recent logins:
+    $sql = "SELECT TOP 3 FROM yellowteam.dbo.failedlogin ORDER BY failedlogin WHERE username = ? DESC";
+    $stmt = sqlsrv_prepare($conn, $sql, array($username));
+    if(sqlsrv_execute($stmt)) {
+        echo '<script>console.log("Successfully retrieved top 3 failed login attempts.\n")</script>';
+    } else {
+        echo '<script>console.log("Error in retrieving top 3 failed login attempts.\n")</script>';
+    }
+
+    // We take the difference in seconds of current timestamp and last 3 login attempts.
+    // Note: we have to check that 3 login attempts were returned! First/second time fails shouldn't trigger.
+    $numberOfRows = sqlsrv_num_rows($stmt);
+    if ($numberOfRows === 3) {
+        // creating an array to store failed login attempt datetimes:
+        $failedlogin = array();
+        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            // have to create datetime object out of database datetime string so we can take date_diff later:
+            $failedlogin = date_create($row['accesslevel']);
+        }
+
+        // also getting current time (datetime) from the database:
+        $sql = "SELECT CURRENT_TIMESTAMP AS currentTime";
+        $stmt = sqlsrv_prepare($conn, $sql);
+        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            // have to create datetime object out of database datetime string so we can take date_diff later:
+            $currentTime = date_create($row['currentTime']);
+        }
+
+        // both php & mssql server have datediff functions, using PHP makes it easier (less SQL statements):
+        $difference = array();
+        foreach($failedlogin as $failTime) {
+            // info on formatting date_diff strings: https://www.php.net/manual/en/function.date-diff.php
+            // in this case we are taking the difference between current time and stored time in seconds
+            $difference = (date_diff($failTime, $currentTime))->format('%s');
+        }
+
+        // going to count how many of the 3 most recent fails are actually within 15 minutes * 60 seconds (900 seconds)
+        $count = 0;
+        $max = 0;
+        // counts each fail that is within 15 min from query of 3; finds max (closest to expiring) ban time;
+        foreach($difference as $value) {
+            if ($value < 900) {
+                if ($value > $max) {
+                    $max = $value;
+                }
+                $count++;
+            }
+        }
+
+        // if there exist 3 recent fails within the 3 returned by the query, return time left in seconds until ban is over
+        if($count === 3) {
+            return 900 - $max;
+        } else {
+            return null;
+        }
+    }
 }
 
 ?>
