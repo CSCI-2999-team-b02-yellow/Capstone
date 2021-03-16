@@ -112,7 +112,7 @@ if(isset($_POST['submit'])) {
                 $_SESSION["ID"] = $ID;
                 $_SESSION["username"] = $username;
                 $_SESSION["accesslevel"] = $accesslevel;
-                welcomeRedirect($fullname, employees.php);
+                welcomeRedirect($fullname, 'employees.php');
             } else {
                 $minutes = $banTime / 60;
                 $seconds = $banTime % 60;
@@ -128,7 +128,7 @@ if(isset($_POST['submit'])) {
                 $_SESSION["username"] = $username;
                 $_SESSION["accesslevel"] = $accesslevel;
                 // customers.php is a placeholder, we can rename the URL once a page is established
-                welcomeRedirect($fullname, customers.php);
+                welcomeRedirect($fullname, 'customers.php');
             } else {
                 $minutes = $banTime / 60;
                 $seconds = $banTime % 60;
@@ -173,8 +173,13 @@ function welcomeRedirect($fullname, $url) {
 
 function failCheck($conn, $username) {
     // We query the database and request the 3 most recent logins:
-    $sql = "SELECT TOP 3 FROM yellowteam.dbo.failedlogin ORDER BY failedlogin WHERE username = ? DESC";
-    $stmt = sqlsrv_prepare($conn, $sql, array($username));
+    $sql = "SELECT TOP 3 failedlogin FROM yellowteam.dbo.failedlogin WHERE username = ? ORDER BY failedlogin DESC";
+	/* sqlsrv_num_rows requires a client-side, static, or keyset cursor, and will return false if you use a forward 
+	 * cursor or a dynamic cursor. (A forward cursor is the default.) 
+	 * https://docs.microsoft.com/en-us/sql/connect/php/sqlsrv-num-rows?view=sql-server-ver15
+	 * This was a real pain to figure out why sqlsrv_num_rows was not returning a value. Buffered is client-side:
+	 */
+    $stmt = sqlsrv_prepare($conn, $sql, array($username), array( "Scrollable" => "buffered"));
     if(sqlsrv_execute($stmt)) {
         echo '<script>console.log("Successfully retrieved top 3 failed login attempts.\n")</script>';
     } else {
@@ -187,31 +192,40 @@ function failCheck($conn, $username) {
     if ($numberOfRows === 3) {
         // creating an array to store failed login attempt datetimes:
         $failedlogin = array();
+		$i = 0;
         while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
             // have to create datetime object out of database datetime string so we can take date_diff later:
-            $failedlogin = date_create($row['accesslevel']);
+            $failedlogin[$i] = $row['failedlogin'];
+			$result = $failedlogin[$i]->format('Y-m-d H:i:s');
+			echo '<script>console.log("Failed login #'.$i.' datetime is: '.$result.'")</script>';
+			$i++;
         }
-
+		
         // also getting current time (datetime) from the database:
         $sql = "SELECT CURRENT_TIMESTAMP AS currentTime";
         $stmt = sqlsrv_prepare($conn, $sql);
-        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-            // have to create datetime object out of database datetime string so we can take date_diff later:
-            $currentTime = date_create($row['currentTime']);
-        }
 
+		$row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC);
+		$currentTime = date_create($row['currentTime']);
+		$result = $currentTime->format('Y-m-d H:i:s');
+		echo '<script>console.log("The current datetime is:'.$result.'")</script>';
+
+		//TODO: something is off with the seconds on this date_diff comparison, it's skipping all the minutes...
+		//TODO: https://stackoverflow.com/questions/5988450/difference-between-2-dates-in-seconds
         // both php & mssql server have datediff functions, using PHP makes it easier (less SQL statements):
         $difference = array();
         foreach($failedlogin as $failTime) {
             // info on formatting date_diff strings: https://www.php.net/manual/en/function.date-diff.php
             // in this case we are taking the difference between current time and stored time in seconds
-            $difference = (date_diff($failTime, $currentTime))->format('%s');
+            $difference = (date_diff($currentTime, $failTime))->format('%s');
+			echo '<script>console.log("The difference is:'.$difference.'")</script>';
         }
 
         // going to count how many of the 3 most recent fails are actually within 15 minutes * 60 seconds (900 seconds)
         $count = 0;
         $max = 0;
         // counts each fail that is within 15 min from query of 3; finds max (closest to expiring) ban time;
+		// TODO: Warning: Invalid argument supplied for foreach() in C:\wamp64\www\login.php on line 225
         foreach($difference as $value) {
             if ($value < 900) {
                 if ($value > $max) {
