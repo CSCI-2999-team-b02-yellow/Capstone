@@ -198,7 +198,6 @@ function failCheck($conn, $username) {
             $failedlogin[$i] = $row['failedlogin'];
 			$result = $failedlogin[$i]->format('Y-m-d H:i:s');
 			echo '<script>console.log("Failed login #'.$i.' datetime is: '.$result.'")</script>';
-            $failedlogin[$i] = $failedlogin[$i]->format('U'); // Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)
 			$i++;
         }
 		
@@ -210,21 +209,16 @@ function failCheck($conn, $username) {
 		$currentTime = date_create($row['currentTime']);
 		$result = $currentTime->format('Y-m-d H:i:s');
 		echo '<script>console.log("The current datetime is:'.$result.'")</script>';
-        $currentTime = $currentTime->format('U'); // Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)
 
-		/* TODO: something is off with the seconds on this date_diff comparison, it's skipping all the minutes...
-		 * https://stackoverflow.com/questions/676824/how-to-calculate-the-difference-between-two-dates-using-php
-		 * https://www.php.net/manual/en/datetime.format.php
-		 */
-
+		//TODO: something is off with the seconds on this date_diff comparison, it's skipping all the minutes...
+		//TODO: https://stackoverflow.com/questions/5988450/difference-between-2-dates-in-seconds
         // both php & mssql server have datediff functions, using PHP makes it easier (less SQL statements):
         $difference = array();
         foreach($failedlogin as $failTime) {
             // info on formatting date_diff strings: https://www.php.net/manual/en/function.date-diff.php
             // in this case we are taking the difference between current time and stored time in seconds
-            $difference = $failTime->diff($currentTime);
-            // $difference = (date_diff($currentTime, $failTime))->format('%s');
-			echo '<script>console.log("The difference is:'.$difference->seconds.'")</script>';
+            $difference = (date_diff($currentTime, $failTime))->format('%s');
+			echo '<script>console.log("The difference is:'.$difference.'")</script>';
         }
 
         // going to count how many of the 3 most recent fails are actually within 15 minutes * 60 seconds (900 seconds)
