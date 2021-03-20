@@ -209,7 +209,7 @@ function failCheck($conn, $username) {
 		$row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC);
 		$currentTime = date_create($row['currentTime']);
 		$result = $currentTime->format('Y-m-d H:i:s');
-		echo '<script>console.log("The current datetime is:'.$result.'")</script>';
+		echo '<script>console.log("The current datetime is: '.$result.'")</script>';
         $currentTime = $currentTime->format('U'); // Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)
 
 		/* TODO: something is off with the seconds on this date_diff comparison, it's skipping all the minutes...
@@ -222,16 +222,17 @@ function failCheck($conn, $username) {
         foreach($failedlogin as $failTime) {
             // info on formatting date_diff strings: https://www.php.net/manual/en/function.date-diff.php
             // in this case we are taking the difference between current time and stored time in seconds
+            // TODO:  Fatal error: Uncaught Error: Call to a member function diff() on string in C:\wamp64\www\login.php on line 226
             $difference = $failTime->diff($currentTime);
             // $difference = (date_diff($currentTime, $failTime))->format('%s');
-			echo '<script>console.log("The difference is:'.$difference->seconds.'")</script>';
+			echo '<script>console.log("The difference is: '.$difference->seconds.'")</script>';
         }
 
         // going to count how many of the 3 most recent fails are actually within 15 minutes * 60 seconds (900 seconds)
         $count = 0;
         $max = 0;
         // counts each fail that is within 15 min from query of 3; finds max (closest to expiring) ban time;
-		// TODO: Warning: Invalid argument supplied for foreach() in C:\wamp64\www\login.php on line 225
+		// TODO: Warning: Invalid argument supplied for foreach() in C:\wamp64\www\login.php on line 236
         foreach($difference as $value) {
             if ($value < 900) {
                 if ($value > $max) {
