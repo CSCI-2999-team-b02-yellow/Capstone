@@ -1,12 +1,12 @@
 <?php
 
+// starts a new session
+session_start();
+
 // connection info we should move to conn.php file later
 $serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
 $connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
 $conn = sqlsrv_connect( $serverName, $connectionInfo);
-
-// starts a new session
-session_start();
 
 // https://medium.com/@sherryhsu/session-vs-token-based-authentication-11a6c5ac45e4 thread for looking into security
 // this session check feels weird, we set it to true, but why do we check that it exists?
@@ -254,17 +254,34 @@ function failCheck($conn, $username) {
 	<link href="css/indexstyle.css" rel="stylesheet">
 </head>
 <body>
-	<div class="header">
-      <div class="links">
-      <a class="active" href="index.html">Home</a>
-	  <a href="products.php">Products</a>
-      <a href="addinventory.php">Add Inventory</a>
-	  <a href="updateinventory.php">Update Products</a>
-	  <a href="contactus.html">Contact Us</a>
-      <a href="aboutus.html">FAQ</a>
-	  <a href="employees.php">Employees</a>
-      </div>
+<div class="header">
+    <div class="links">
+        <a class="active" href="index.php">Home</a>
+        <a href="products.php">Products</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="addinventory.php">Add Inventory</a>';
+            }
+        }?>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="updateinventory.php">Update Products</a>';
+            }
+        }?>
+        <a href="contactus.php">Contact Us</a>
+        <a href="aboutus.php">FAQ</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="employees.php">Employees</a>';
+            }
+        }?>
+        <a href="login.php">Login</a>
+        <?php if(isset($_SESSION["username"])) {
+            echo '<a href="logout.php">Logout</a>';
+        }?>
     </div>
+</div>
+
 	
     <h1>Login</h1>
       <div class="wrapper">

@@ -1,11 +1,18 @@
 <?php
-   
+
+session_start();
+
 	$serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
 	// $connection info to the database.
 	$connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
 	$conn = sqlsrv_connect( $serverName, $connectionInfo);
 	
- // if condition when the Submit butoon is pushed. 
+ // if condition when the Submit butoon is pushed.
+
+if(!isset($_SESSION["username"])){
+    header("location: login.php");
+}
+
 if(isset($_POST['submit'])){
 	
 	// function to display a message alert
@@ -75,18 +82,34 @@ if(isset($_POST['submit'])){
 
     <body>
 
-	<div class="header">
-      <div class="links">
-      <a class="active" href="index.html">Home</a>
-	  <a href="products.php">Products</a>
-      <a href="addinventory.php">Add Inventory</a>
-	  <a href="updateinventory.php">Update Products</a>
-	  <a href="contactus.html">Contact Us</a>
-      <a href="aboutus.html">FAQ</a>
-	  <a href="employees.php">Employees</a>
-      </div>
-      
+    <div class="header">
+        <div class="links">
+            <a class="active" href="index.php">Home</a>
+            <a href="products.php">Products</a>
+            <?php if(isset($_SESSION["accesslevel"])) {
+                if ($_SESSION["accesslevel"] > 1) {
+                    echo '<a href="addinventory.php">Add Inventory</a>';
+                }
+            }?>
+            <?php if(isset($_SESSION["accesslevel"])) {
+                if ($_SESSION["accesslevel"] > 1) {
+                    echo '<a href="updateinventory.php">Update Products</a>';
+                }
+            }?>
+            <a href="contactus.php">Contact Us</a>
+            <a href="aboutus.php">FAQ</a>
+            <?php if(isset($_SESSION["accesslevel"])) {
+                if ($_SESSION["accesslevel"] > 1) {
+                    echo '<a href="employees.php">Employees</a>';
+                }
+            }?>
+            <a href="login.php">Login</a>
+            <?php if(isset($_SESSION["username"])) {
+                echo '<a href="logout.php">Logout</a>';
+            }?>
+        </div>
     </div>
+
 
 	<br><br>
 

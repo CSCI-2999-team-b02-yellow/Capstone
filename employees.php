@@ -1,7 +1,8 @@
 <?php
 
-// Adding code to redirect to login page if employee is not logged in:
 session_start();
+// Adding code to redirect to login page if employee is not logged in:
+
 if(!isset($_SESSION["username"])){
    header("location: login.php");
 }
@@ -94,18 +95,33 @@ if(isset($_POST['addemployee'])){
 
 <body>
 <div class="header">
-      <div class="links">
-      <a class="active" href="index.html">Home</a>
-      <a href="products.html">Products</a>
-      <a href="addinventory.php">Add Inventory</a>
-	  <a href="updateinventory.php">Update Products</a>
-	  <a href="contactus.html">Contact Us</a>	  
-	  <a href="aboutus.html">FAQ</a>
-	  <a href="employees.php">Employees</a>
-      <?php if(isset($_SESSION["username"])) {
-          echo '<a href="logout.php">Logout</a>';
-      }?>
-      </div>
+    <div class="links">
+        <a class="active" href="index.php">Home</a>
+        <a href="products.php">Products</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="addinventory.php">Add Inventory</a>';
+            }
+        }?>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="updateinventory.php">Update Products</a>';
+            }
+        }?>
+        <a href="contactus.php">Contact Us</a>
+        <a href="aboutus.php">FAQ</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="employees.php">Employees</a>';
+            }
+        }?>
+        <a href="login.php">Login</a>
+        <?php if(isset($_SESSION["username"])) {
+            echo '<a href="logout.php">Logout</a>';
+        }?>
+    </div>
+</div>
+
 	  
       
 </div>
