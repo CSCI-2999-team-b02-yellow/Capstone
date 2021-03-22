@@ -6,16 +6,6 @@ if(!isset($_SESSION["username"])){
    header("location: login.php");
 }
 
-//adding logout button as well as PHP logic to execute it:
-if(isset($_POST['logout'])) {
-    unset($_SESSION["username"]);
-    unset($_SESSION["accesslevel"]);
-    session_destroy();
-    header("location: login.php");
-    exit;
-}
-
-
 // SQLSRV are Microsoft developed drivers, PDO_SQLSRV or PDO are community developed drivers for MSSQL
 // $serverName is just the URL our database is hosted on:
 $serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
@@ -112,9 +102,9 @@ if(isset($_POST['addemployee'])){
 	  <a href="contactus.html">Contact Us</a>	  
 	  <a href="aboutus.html">FAQ</a>
 	  <a href="employees.php">Employees</a>
-	  <div><form action="" method="POST">
-	  <button name="logout" class="btn btn-dark">Log out</button>
-	  </form></div>
+      <?php if(isset($_SESSION["username"])) {
+          echo '<a href="logout.php">Logout</a>';
+      }?>
       </div>
 	  
       
