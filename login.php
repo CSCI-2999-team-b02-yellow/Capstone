@@ -148,9 +148,10 @@ if(isset($_POST['submit'])) {
             // call failCheck() function to see if it returns null or the time remaining until login ban expires:
             $banTime = failCheck($conn, $username);
             if ($banTime !== null) {
-                $minutes = $banTime / 60;
+				// unlike strongly-typed languages, integer division needs floored in PHP to return a decimal value:
+                $minutes = floor($banTime / 60);
                 $seconds = $banTime % 60;
-                echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.')</script>";
+                echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.".'\n\n'."Note: Trying to log in during this window will extend the time you must wait.')</script>";
             }
 		}
 	} catch (exception $e) {
@@ -213,7 +214,7 @@ function failCheck($conn, $username) {
         }
 
 		$row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC);
-		$currentTime = date_create($row['currentTime']);
+		$currentTime = $row['currentTime'];
 		$result = $currentTime->format('Y-m-d H:i:s');
 		echo '<script>console.log("The current datetime is: '.$result.'")</script>';
         $currentTime = $currentTime->format('U'); // Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)
@@ -225,33 +226,37 @@ function failCheck($conn, $username) {
 
         // both php & mssql server have datediff functions, using PHP makes it easier (less SQL statements):
         $difference = array();
+		$i = 0;
         foreach($failedlogin as $failTime) {
             // info on formatting date_diff strings: https://www.php.net/manual/en/function.date-diff.php
             // in this case we are taking the difference between current time and stored time in seconds
-            // TODO:  Fatal error: Uncaught Error: Call to a member function diff() on string in C:\wamp64\www\login.php on line 226
-            $difference = $failTime->diff($currentTime);
+            $difference[$i] = $currentTime - $failTime;
+			// $difference = $failTime->diff($currentTime);
             // $difference = (date_diff($currentTime, $failTime))->format('%s');
-			echo '<script>console.log("The difference is: '.$difference->seconds.'")</script>';
+			echo '<script>console.log("The difference is: '.$difference[$i].'")</script>';
+			$i++;
         }
 
         // going to count how many of the 3 most recent fails are actually within 15 minutes * 60 seconds (900 seconds)
         $count = 0;
         $max = 0;
         // counts each fail that is within 15 min from query of 3; finds max (closest to expiring) ban time;
-		// TODO: Warning: Invalid argument supplied for foreach() in C:\wamp64\www\login.php on line 236
-        foreach($difference as $value) {
-            if ($value < 900) {
-                if ($value > $max) {
-                    $max = $value;
-                }
-                $count++;
-            }
-        }
+		// TODO:  Warning: Invalid argument supplied for foreach() in C:\wamp64\www\login.php on line 242
+		for ($i = 0; $i < 3; $i++) {
+			if ($difference[$i] < 900) {
+				if ($difference[$i] > $max) {
+					$max = $difference[$i];
+				}
+				$count++;
+			}
+		}
 
         // if there exist 3 recent fails within the 3 returned by the query, return time left in seconds until ban is over
         if($count === 3) {
+			echo '<script>console.log("Time remaining until login ban is lifted: '.(900 - $max).'")</script>';
             return 900 - $max;
         } else {
+			echo '<script>console.log("No login ban exists.")</script>';
             return null;
         }
     }
@@ -263,10 +268,21 @@ function failCheck($conn, $username) {
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
-    
-    </style>
+	<link href="css/indexstyle.css" rel="stylesheet">
 </head>
 <body>
+	<div class="header">
+      <div class="links">
+      <a class="active" href="index.html">Home</a>
+	  <a href="products.php">Products</a>
+      <a href="addinventory.php">Add Inventory</a>
+	  <a href="updateinventory.php">Update Products</a>
+	  <a href="contactus.html">Contact Us</a>
+      <a href="aboutus.html">FAQ</a>
+	  <a href="employees.php">Employees</a>
+      </div>
+    </div>
+	
     <h1>Login</h1>
       <div class="wrapper">
         <p>Login Info</p>
