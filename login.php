@@ -205,6 +205,12 @@ function failCheck($conn, $username) {
         // also getting current time (datetime) from the database:
         $sql = "SELECT CURRENT_TIMESTAMP AS currentTime";
         $stmt = sqlsrv_prepare($conn, $sql);
+        $stmt = sqlsrv_prepare($conn, $sql, array($username), array( "Scrollable" => "buffered"));
+        if(sqlsrv_execute($stmt)) {
+            echo '<script>console.log("Successfully retrieved current time.\n")</script>';
+        } else {
+            echo '<script>console.log("Error in retrieving current time.\n")</script>';
+        }
 
 		$row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC);
 		$currentTime = date_create($row['currentTime']);
