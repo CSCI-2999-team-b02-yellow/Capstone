@@ -12,7 +12,7 @@ session_start();
 // this session check feels weird, we set it to true, but why do we check that it exists?
 
 // checks if the user is already logged in, if they are redirects based on access level
-if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+if(isset($_SESSION["username"])) {
     // all access levels greater than 1 (employee+) goes to employees.php
     if ($_SESSION["accesslevel"] > 1) {
         header("location: employees.php");
@@ -106,10 +106,7 @@ if(isset($_POST['submit'])) {
 		if($password === $hashed_password && $accesslevel > 1) {
             $banTime = failCheck($conn, $username);
             if ($banTime === null) {
-                // Store data in session variables
-                $_SESSION["loggedin"] = true;
-                // why are we storing session id if we don't ever use it?
-                $_SESSION["ID"] = $ID;
+                // Store data in session variables, username basically means user is logged in
                 $_SESSION["username"] = $username;
                 $_SESSION["accesslevel"] = $accesslevel;
                 welcomeRedirect($fullname, 'employees.php');
@@ -121,10 +118,7 @@ if(isset($_POST['submit'])) {
 		} elseif ($password === $hashed_password && $accesslevel === 1) {
             $banTime = failCheck($conn, $username);
             if ($banTime === null) {
-                // Store data in session variables
-                $_SESSION["loggedin"] = true;
-                // why are we storing session id if we don't ever use it?
-                $_SESSION["ID"] = $ID;
+                // Store data in session variables, username being set is same as loggedin = true, removed redundancy
                 $_SESSION["username"] = $username;
                 $_SESSION["accesslevel"] = $accesslevel;
                 // customers.php is a placeholder, we can rename the URL once a page is established
@@ -151,7 +145,8 @@ if(isset($_POST['submit'])) {
 				// unlike strongly-typed languages, integer division needs floored in PHP to return a decimal value:
                 $minutes = floor($banTime / 60);
                 $seconds = $banTime % 60;
-                echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.".'\n\n'."Note: Trying to log in during this window will extend the time you must wait.')</script>";
+                echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.".
+                    '\n\n'."Note: Trying to log in during this window will extend the time you must wait.')</script>";
             }
 		}
 	} catch (exception $e) {
@@ -191,11 +186,9 @@ function failCheck($conn, $username) {
     // Note: we have to check that 3 login attempts were returned! First/second time fails shouldn't trigger.
     $numberOfRows = sqlsrv_num_rows($stmt);
     if ($numberOfRows === 3) {
-        // creating an array to store failed login attempt datetimes:
         $failedlogin = array();
 		$i = 0;
         while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-            // have to create datetime object out of database datetime string so we can take date_diff later:
             $failedlogin[$i] = $row['failedlogin'];
 			$result = $failedlogin[$i]->format('Y-m-d H:i:s');
 			echo '<script>console.log("Failed login #'.$i.' datetime is: '.$result.'")</script>';
@@ -219,20 +212,11 @@ function failCheck($conn, $username) {
 		echo '<script>console.log("The current datetime is: '.$result.'")</script>';
         $currentTime = $currentTime->format('U'); // Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)
 
-		/* TODO: something is off with the seconds on this date_diff comparison, it's skipping all the minutes...
-		 * https://stackoverflow.com/questions/676824/how-to-calculate-the-difference-between-two-dates-using-php
-		 * https://www.php.net/manual/en/datetime.format.php
-		 */
-
-        // both php & mssql server have datediff functions, using PHP makes it easier (less SQL statements):
+        // looping through and getting the difference between UNIX failtimes and current time in seconds:
         $difference = array();
 		$i = 0;
         foreach($failedlogin as $failTime) {
-            // info on formatting date_diff strings: https://www.php.net/manual/en/function.date-diff.php
-            // in this case we are taking the difference between current time and stored time in seconds
             $difference[$i] = $currentTime - $failTime;
-			// $difference = $failTime->diff($currentTime);
-            // $difference = (date_diff($currentTime, $failTime))->format('%s');
 			echo '<script>console.log("The difference is: '.$difference[$i].'")</script>';
 			$i++;
         }
@@ -241,7 +225,6 @@ function failCheck($conn, $username) {
         $count = 0;
         $max = 0;
         // counts each fail that is within 15 min from query of 3; finds max (closest to expiring) ban time;
-		// TODO:  Warning: Invalid argument supplied for foreach() in C:\wamp64\www\login.php on line 242
 		for ($i = 0; $i < 3; $i++) {
 			if ($difference[$i] < 900) {
 				if ($difference[$i] > $max) {
