@@ -17,7 +17,7 @@ if(isset($_SESSION["username"])) {
     if ($_SESSION["accesslevel"] > 1) {
         header("location: employees.php");
     } else {
-        header("location: customers.php");
+        header("location: index.php");
     }
     exit;
 }
@@ -133,7 +133,7 @@ if(isset($_POST['submit'])) {
                     $_SESSION["username"] = $username;
                     $_SESSION["accesslevel"] = $accesslevel;
                     // customers.php is a placeholder, we can rename the URL once a page is established
-                    welcomeRedirect($fullname, 'customers.php');
+                    welcomeRedirect($fullname, 'index.php');
                 } else {
                     $minutes = $banTime / 60;
                     $seconds = $banTime % 60;
