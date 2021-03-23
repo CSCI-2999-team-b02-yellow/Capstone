@@ -53,7 +53,7 @@ if(isset($_POST['submit'])) {
     if ($checkpoint1Passed === true) {
         $sql = "SELECT username FROM yellowteam.dbo.users WHERE username = ?";
         $username = $_POST['username'];
-        $stmt = sqlsrv_prepare($conn, $sql, array($username));
+        $stmt = sqlsrv_prepare($conn, $sql, array($username), array( "Scrollable" => "buffered"));
         sqlsrv_execute($stmt);
 
         // check that username returns only 1 result row -- just extra precaution against any db issues;
