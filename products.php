@@ -86,7 +86,7 @@ session_start();
 		  <td><?php echo $product; ?></td>
 		  <td><?php echo $sku; ?></td>
 		  <td><?php echo $discription; ?></td>
-		  <td><?php echo $price; ?></td>
+		  <td><?php echo '$'.$price; ?></td>
 		</tr>
     <?php
 	}?>
