@@ -37,7 +37,7 @@ if(isset($_POST['registeruser'])){
         $password = $_POST['password'];
 		
 	// placeholders (?) are used in SQL statements to prepare a statement & prevent SQL injection
-		$sql = "INSERT INTO yellowteam.dbo.employees (fullname, username, password, accesslevel)
+		$sql = "INSERT INTO yellowteam.dbo.users (fullname, username, password, accesslevel)
 				VALUES (?, ?, ?, 1)";
 			
 		// prepares our statement with connection info, all variables inside placeholders in sql:
