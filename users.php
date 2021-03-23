@@ -85,7 +85,7 @@ if(isset($_POST['registeruser'])){
   <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, products, add, add products">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link href="css/main.css" rel="stylesheet">
+  <link href="css/index.css" rel="stylesheet">
 </head>
 
 <body>
@@ -121,20 +121,19 @@ if(isset($_POST['registeruser'])){
 
 <div class="main">
 <main class="container p-5">
-<div class="content">  
-  <h1>Nuts and Bolts Hardware</h1>
-  <h3>Register User Page</h3>
+<div class="content">
+  <h3>User Registration</h3>
   <form action="" method="POST">
-  <label for="fullname">Full Name:</label><br>
-  <input type="text" id="fullname" name="fullname" placeholder="Full Name" value=""><br>
-  <label for="username">Username:</label><br>
+      <label for="fullname">Full Name:</label><br>
+      <input type="text" id="fullname" name="fullname" placeholder="Full Name" value=""><br>
+      <label for="username">Username:</label><br>
       <input type="text" id="username" name="username" value="" placeholder="Username" pattern="^[a-z]*$" title="username can only be lowercase with no spaces."><br>
       <label for="password">Password:</label><br>
-  <input type="text" id="password" name="password" value="" placeholder="Password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*?[~`!@#$%\^&*()\-_=+[\]{};:\x27.,\x22\\|/?><]).{1,}" title="Password must have at least one lowercase letter, one uppercase, one number, and a special character."><br>
-  <label for="password">Re-enter Password:</label><br>
-  <input type="text" id="repassword" name="repassword" value="" placeholder="Re-enter Password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*?[~`!@#$%\^&*()\-_=+[\]{};:\x27.,\x22\\|/?><]).{1,}" title="Password must have at least one lowercase letter, one uppercase, one number, and a special character."><br>
-  <br>
-  <button name="registeruser" value="Register User" class="btn btn-dark">Register User</button>
+      <input type="text" id="password" name="password" value="" placeholder="Password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*?[~`!@#$%\^&*()\-_=+[\]{};:\x27.,\x22\\|/?><]).{1,}" title="Password must have at least one lowercase letter, one uppercase, one number, and a special character."><br>
+      <label for="password">Re-enter Password:</label><br>
+      <input type="text" id="repassword" name="repassword" value="" placeholder="Re-enter Password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*?[~`!@#$%\^&*()\-_=+[\]{};:\x27.,\x22\\|/?><]).{1,}" title="Password must have at least one lowercase letter, one uppercase, one number, and a special character."><br>
+      <br>
+      <button name="registeruser" value="Register User" class="btn btn-dark">Register User</button>
   </form>
 </div>
 </main>
