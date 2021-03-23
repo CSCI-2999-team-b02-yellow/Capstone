@@ -134,7 +134,7 @@ if(isset($_POST['submit'])){
                     ?>
                     <li><a>
                             <input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
-                            <label for=""> <?php echo $product." ".$products["productSKU"]." ".$products["itemDescription"]." ".$products["price"];?> </label>
+                            <label for=""> <?php echo $product." ".$products["productSKU"]." ".$products["itemDescription"]."  $".round($products["price"],2);?> </label>
                         </a></li>
                     <?php
                 }?>
