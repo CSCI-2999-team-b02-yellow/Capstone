@@ -1,0 +1,69 @@
+/* developer.mozilla.org fixed: The element is removed from the normal document flow, and no space is created for the element in the page layout. */
+/* Removed position: fixed; This was the reason the banner (header) was covering up content. Default position is static. */
+/* developer.mozilla.org overflow: when an element's content is too big to fit in its block formatting context — in both directions.
+/* Changed overflow hidden => auto. Ideally we don't hit overflow, but if we did content is visible with scroll bars. */
+
+.header {
+  background-color: black;
+  overflow: auto;
+  top: 0;
+  width: 100%;
+}
+
+.header a {
+  float: left;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 2% 1%;
+  text-decoration: none;
+  font-size: 17px;
+  font-family: "Lucida Console", "Courier New", monospace;
+}
+
+.header a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+.header a.active {
+  background-color: white;
+  color: black;
+}
+
+.logo {
+  margin: 0px auto;
+  position: relative;
+  right:-69%;
+
+}
+
+/* Removed background-image stuff from main.css (used for all pages but index); only index css has logo on background */
+/* If we style the logo so it doesn't interfere with content, we can move it back later */
+body {
+  margin: 0; /* Fixes the issue of the navbar not spanning the entire page. */
+  background-color: #B6B6B6; /* This is some sort of light gray */
+}
+
+.main {
+  color: lightgray; /* Solves our Contact Us page having invisible writing; */
+  font-family: "Lucida Console", "Courier New", monospace; /* Redundant, consolidated */
+  border: 5px dotted lightgray;
+  background-color: black;
+  opacity: 0.7; /* Trying to make the logo a bit more visible while text is readable */
+  text-align: center;
+  display: inline-block;
+  padding-right: 20px;
+  padding-left: 20px;
+  /* These 4 lines center the content perfectly: */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.main h1 {
+  font-size: 60px;
+}
+.main h3{
+  font-size: 30px;
+}

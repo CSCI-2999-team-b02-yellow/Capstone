@@ -10,60 +10,48 @@ session_start();
 ?>
 	
 <!DOCTYPE html>
-
 <html lang="en">
+<head>
+    <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+    <title>Products</title>
+</head>
 
-    <head>
+<body>
 
-        <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
-
-         <link href="css/indexstyle.css" rel="stylesheet">
-        <title>Products</title>
-
-    </head>
-
-    <body>
-
-    <div class="header">
-        <div class="links">
-            <a class="active" href="index.php">Home</a>
-            <a href="products.php">Products</a>
-            <?php if(isset($_SESSION["accesslevel"])) {
-                if ($_SESSION["accesslevel"] > 1) {
-                    echo '<a href="addinventory.php">Add Inventory</a>';
-                }
-            }?>
-            <?php if(isset($_SESSION["accesslevel"])) {
-                if ($_SESSION["accesslevel"] > 1) {
-                    echo '<a href="updateinventory.php">Update Products</a>';
-                }
-            }?>
-            <a href="contactus.php">Contact Us</a>
-            <a href="aboutus.php">FAQ</a>
-            <?php if(isset($_SESSION["accesslevel"])) {
-                if ($_SESSION["accesslevel"] > 1) {
-                    echo '<a href="employees.php">Employees</a>';
-                }
-            }?>
-            <?php if(!isset($_SESSION["username"])) {
-                echo '<a href="login.php">Login</a>';
-            }?>
-            <?php if(isset($_SESSION["username"])) {
-                echo '<a href="logout.php">Logout</a>';
-            }?>
-        </div>
+<div class="header">
+    <div class="links">
+        <a href="index.php">Home</a>
+        <a href="products.php">Products</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="addinventory.php">Add Inventory</a>';
+            }
+        }?>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="updateinventory.php">Update Products</a>';
+            }
+        }?>
+        <a href="contactus.php">Contact Us</a>
+        <a href="aboutus.php">FAQ</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="employees.php">Employees</a>';
+            }
+        }?>
+        <?php if(!isset($_SESSION["username"])) {
+            echo '<a href="login.php">Login</a>';
+        }?>
+        <?php if(isset($_SESSION["username"])) {
+            echo '<a href="logout.php">Logout</a>';
+        }?>
     </div>
+</div>
 
-	<br><br>
-
-
-    <main class="container p-5">
-			<div>
-				<b> Products <b>
-			</div>
-			<br>
-
+<main class="container p-5">
+<div><h3><b> Products <b></h3></div><br>
 <table class="table">
   <thead class="thead-dark">
     <tr>
@@ -102,7 +90,6 @@ session_start();
 		</tr>
     <?php
 	}?>
-					
   </tbody>
 </table>
 </main>

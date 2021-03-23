@@ -11,6 +11,10 @@ session_start();
 
 if(!isset($_SESSION["username"])){
     header("location: login.php");
+} else {
+    if ($_SESSION["accesslevel"] < 2) {
+        header("location: login.php");
+    }
 }
 
 if(isset($_POST['submit'])){
@@ -70,106 +74,85 @@ if(isset($_POST['submit'])){
 
 <html lang="en">
 
-    <head>
+<head>
+    <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/index.css" rel="stylesheet">
+    <title>Update Products</title>
+</head>
 
-        <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+<body>
 
-        <link href="css/indexstyle.css" rel="stylesheet">
-        <title>Update Products</title>
-
-    </head>
-
-    <body>
-
-    <div class="header">
-        <div class="links">
-            <a class="active" href="index.php">Home</a>
-            <a href="products.php">Products</a>
-            <?php if(isset($_SESSION["accesslevel"])) {
-                if ($_SESSION["accesslevel"] > 1) {
-                    echo '<a href="addinventory.php">Add Inventory</a>';
-                }
-            }?>
-            <?php if(isset($_SESSION["accesslevel"])) {
-                if ($_SESSION["accesslevel"] > 1) {
-                    echo '<a href="updateinventory.php">Update Products</a>';
-                }
-            }?>
-            <a href="contactus.php">Contact Us</a>
-            <a href="aboutus.php">FAQ</a>
-            <?php if(isset($_SESSION["accesslevel"])) {
-                if ($_SESSION["accesslevel"] > 1) {
-                    echo '<a href="employees.php">Employees</a>';
-                }
-            }?>
-            <?php if(!isset($_SESSION["username"])) {
-                echo '<a href="login.php">Login</a>';
-            }?>
-            <?php if(isset($_SESSION["username"])) {
-                echo '<a href="logout.php">Logout</a>';
-            }?>
-        </div>
+<div class="header">
+    <div class="links">
+        <a href="index.php">Home</a>
+        <a href="products.php">Products</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="addinventory.php">Add Inventory</a>';
+            }
+        }?>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="updateinventory.php">Update Products</a>';
+            }
+        }?>
+        <a href="contactus.php">Contact Us</a>
+        <a href="aboutus.php">FAQ</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="employees.php">Employees</a>';
+            }
+        }?>
+        <?php if(!isset($_SESSION["username"])) {
+            echo '<a href="login.php">Login</a>';
+        }?>
+        <?php if(isset($_SESSION["username"])) {
+            echo '<a href="logout.php">Logout</a>';
+        }?>
     </div>
+</div>
 
-
-	<br><br>
-
-	
-        <main class="container p-5">
-		
+<div class="main">
+<main class="container p-5">
 <h2> Update Products </h2>
-
 <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search/Filter for a product.." title="Type in a Product Name"> <br>
-			Please select the products to update<br><br>
-			<form action="" method="POST">
-			<ul id="myUL">
-							
-				<?php
-				// using php in the <select> to show dynamically the product in the webpage.
-				$sql = "SELECT * FROM inventory ORDER BY productName";
+    Please select the products to update<br><br>
+    <form action="" method="POST">
+    <ul id="myUL">
+        <?php
+        // using php in the <select> to show dynamically the product in the webpage.
+        $sql = "SELECT * FROM inventory ORDER BY productName";
+        $query = sqlsrv_query( $conn, $sql);
+        if( $query === false ) {
+             die( print_r( sqlsrv_errors(), true));
+        }
+        // A loop function to display all the products in the database.
+        while( $products = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC) ) {
+                $product=$products["productName"];?>
+             <li><a>
+                <input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
+                <label for=""> <?php echo $product. " " .$products["productSKU"];?> </label>
+                </a></li>
+        <?php
+        }?>
 
-				$query = sqlsrv_query( $conn, $sql);
-				if( $query === false ) {
-					 die( print_r( sqlsrv_errors(), true));
-				}
-				// A loop function to display all the products in the database.
-				while( $products = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC) ) {
-				
-						$product=$products["productName"];?>
-					 <li><a> 
-						<input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
-						<label for=""> <?php echo $product. " " .$products["productSKU"];?> </label>
-						</a></li>
-						
+      <br>
 
-		
-				<?php
-				}?>
-								
-
-			  <br>
-			 
-			  <select name="update">
-				<option value="">Choose what to change from the product</option>
-				<option value="sku">Product SKU</option>
-				<option value="price">Price</option>
-				<option value="description">Description</option>
-			  </select>
-			  <br><br>
-			  <input type='text' name='newUpdate' id='newUpdate' placeholder="The New Update">
-			  <br><br>
-			  <button name="submit" class="btn btn-dark">Update</button>
-			</form>
-			<br>
-	
-        </main>
-
-        <footer>
-		<div>
-            Service provided by YellowTeam 2021
-		</div>
-        </footer>
+      <select name="update">
+        <option value="">Choose what to change from the product</option>
+        <option value="sku">Product SKU</option>
+        <option value="price">Price</option>
+        <option value="description">Description</option>
+      </select>
+      <br><br>
+      <input type='text' name='newUpdate' id='newUpdate' placeholder="The New Update">
+      <br><br>
+      <button name="submit" class="btn btn-dark">Update</button>
+    </form>
+    <br>
+</main>
+</div>
 
 <script>
 function myFunction() {
@@ -190,6 +173,5 @@ function myFunction() {
 }
 </script>
 
-    </body>
-
+</body>
 </html>

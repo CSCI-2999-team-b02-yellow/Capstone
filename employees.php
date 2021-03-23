@@ -4,7 +4,11 @@ session_start();
 // Adding code to redirect to login page if employee is not logged in:
 
 if(!isset($_SESSION["username"])){
-   header("location: login.php");
+    header("location: login.php");
+} else {
+    if ($_SESSION["accesslevel"] < 2) {
+        header("location: login.php");
+    }
 }
 
 // SQLSRV are Microsoft developed drivers, PDO_SQLSRV or PDO are community developed drivers for MSSQL
@@ -89,13 +93,13 @@ if(isset($_POST['addemployee'])){
   <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, products, add, add products">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link href="css/indexstyle.css" rel="stylesheet">
+  <link href="css/index.css" rel="stylesheet">
 </head>
 
 <body>
 <div class="header">
     <div class="links">
-        <a class="active" href="index.php">Home</a>
+        <a href="index.php">Home</a>
         <a href="products.php">Products</a>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
@@ -123,17 +127,10 @@ if(isset($_POST['addemployee'])){
     </div>
 </div>
 
-	  
-      
-</div>
-
-<br>
-
-
+<div class="main">
 <main class="container p-5">
-<div class="content">  
-  <h1>Nuts and Bolts Hardware</h1>
-  <h3>Employees Page</h3>
+<div class="content">
+  <h3>Employees Registration</h3>
 
   <form action="" method="POST">
   <label for="employeefirstname">First Name:</label><br>
@@ -148,19 +145,13 @@ if(isset($_POST['addemployee'])){
   <label for="password">Re-enter Password:</label><br>
   <input type="text" id="repassword" name="repassword" value="" placeholder="Re-enter Password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*?[~`!@#$%\^&*()\-_=+[\]{};:\x27.,\x22\\|/?><]).{1,}" title="Password must have at least one lowercase letter, one uppercase, one number, and a special character."><br>
 
-  
 	<br>
   <button name="addemployee" value="Create Employee Account" class="btn btn-dark">Create Employee Account</button>
   
   </form>
 </div>
+</main>
+</div>
 
-       </main>
-
-        <footer>
-		<div>
-            Service provided by YellowTeam 2021
-		</div>
-        </footer>
 </body>
 </html>

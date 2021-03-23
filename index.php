@@ -20,80 +20,14 @@ Tomas Kasparaitis
   <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, home, homepage">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link href="css/indexstyle.css" rel="stylesheet">
-
-<style>
-.header {
-  background-color: black;
-  overflow: hidden;
-  position: fixed; 
-  top: 0; 
-  width: 100%;
-}
-
-.header a {
-  float: left;
-  color: #f2f2f2;
-  text-align: center;
-  padding: 2% 1%;
-  text-decoration: none;
-  font-size: 17px;
-  font-family: "Lucida Console", "Courier New", monospace;
-}
-
-.header a:hover {
-  background-color: #ddd;
-  color: black;
-}
-
-.header a.active {
-  background-color: white;
-  color: black;
-}
-.logo {
-  margin: 0px auto;
-  position: relative;
-  right:-69%;
-  
-}
-body {
-    background-color: #B6B6B6;
-    background-image: url('logo.png');
-    background-repeat:no-repeat;
-    background-attachment: fixed;
-    background-position: 50% 50%;
-    background-size: 45%; 
-  }
-.main {
-  border: 5px dotted lightgray;
-  background-color: black;    
-  text-align: center;
-  display: inline-block;
-  padding-right: 20px;
-  padding-left: 20px; 
-  position: absolute; 
-  left: 21%; 
-  top: 35%; 
-}
-.main h1 {
-  color: lightgray;
-  font-size: 60px;
-  font-family: "Lucida Console", "Courier New", monospace;
-}
-.main h3{
-  color: lightgray;
-  font-size: 30px;
-  font-family: "Lucida Console", "Courier New", monospace;
-}
-
-</style>
+  <link href="css/index.css" rel="stylesheet">
 
 </head>
 
 <body>
 <div class="header">
     <div class="links">
-        <a class="active" href="index.php">Home</a>
+        <a href="index.php">Home</a>
         <a href="products.php">Products</a>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {

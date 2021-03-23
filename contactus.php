@@ -22,7 +22,7 @@ Tomas Kasparaitis
   <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, contact, contact us">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link href="css/indexstyle.css" rel="stylesheet">
+  <link href="css/index.css" rel="stylesheet">
 
 
 </head>
@@ -30,7 +30,7 @@ Tomas Kasparaitis
 <body>
 <div class="header">
     <div class="links">
-        <a class="active" href="index.php">Home</a>
+        <a href="index.php">Home</a>
         <a href="products.php">Products</a>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
@@ -65,7 +65,7 @@ Tomas Kasparaitis
   <p>Address: 1234 Easy Street, Hardwareville FL 9001</p>
   <p>Phone number: 867-530-9999</p>
   <p> Email us at <a href="mailto:nuts_and_bolts_hardware@fake.web">nuts_and_bolts_hardware@fake.web</a>.</p>
-  </div>
+</div>
   
 
   <script src="js/script.js"></script>

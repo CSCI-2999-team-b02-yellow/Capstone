@@ -4,6 +4,10 @@ session_start();
 
 if(!isset($_SESSION["username"])){
     header("location: login.php");
+} else {
+    if ($_SESSION["accesslevel"] < 2) {
+        header("location: login.php");
+    }
 }
 
 // checks if HTML element by the name of 'addInv' has been clicked
@@ -107,15 +111,13 @@ Tomas Kasparaitis
   <meta name="description" content="Nuts and bolts hardware company add products page">
   <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, products, add, add products">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <link href="css/indexstyle.css" rel="stylesheet">
-
+  <link href="css/index.css" rel="stylesheet">
 </head>
 
 <body>
 <div class="header">
     <div class="links">
-        <a class="active" href="index.php">Home</a>
+        <a href="index.php">Home</a>
         <a href="products.php">Products</a>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
@@ -143,23 +145,18 @@ Tomas Kasparaitis
     </div>
 </div>
 
-
-<div class="content">  
-  <h1>Nuts and Bolts Hardware</h1>
-  <h3>Welcome to the nuts and bolts add products page!</h3>
-  
-  <!-- edited action="" since we don't have a PHP file to forward to, added method="POST" -Tomas -->
+<div class="main">
+  <h3>Add Products</h3>
   <form action="" method="POST">
-  <label for="p-name">Product Name:</label><br>
-  <input type="text" id="p-name" name="p-name" value=""><br>
-  <label for="p-sku">Product SKU:</label><br>
-  <input type="text" id="p-sku" name="p-sku" value=""><br><br>
-    <label for="p-desc">Product Description:</label><br>
-  <input type="text" id="p-desc" name="p-desc" value=""><br>
-    <label for="p-price">Product Price:</label><br>
-  <input type="text" id="p-price" name="p-price" value=""><br>
-  <input type="submit" name="addInv" value="Submit">
-  <!--i don't know how to make it so all this info goes into the database, but would like to learn -jeremy-->
+      <label for="p-name">Product Name:</label><br>
+      <input type="text" id="p-name" name="p-name" value=""><br>
+      <label for="p-sku">Product SKU:</label><br>
+      <input type="text" id="p-sku" name="p-sku" value=""><br>
+      <label for="p-desc">Product Description:</label><br>
+      <input type="text" id="p-desc" name="p-desc" value=""><br>
+      <label for="p-price">Product Price:</label><br>
+      <input type="text" id="p-price" name="p-price" value=""><br><br>
+      <input type="submit" name="addInv" value="Submit"><br><br>
   </form>
 </div>
 
