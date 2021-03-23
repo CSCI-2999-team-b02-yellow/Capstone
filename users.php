@@ -119,45 +119,26 @@ if(isset($_POST['registeruser'])){
     </div>
 </div>
 
-	  
-      
-</div>
-
-<br>
-
-
+<div class="main">
 <main class="container p-5">
 <div class="content">  
   <h1>Nuts and Bolts Hardware</h1>
   <h3>Register User Page</h3>
-  
-  <!-- edited action="" since we don't have a PHP file to forward to, added method="POST" -Tomas -->
   <form action="" method="POST">
   <label for="fullname">Full Name:</label><br>
   <input type="text" id="fullname" name="fullname" placeholder="Full Name" value=""><br>
-  
   <label for="username">Username:</label><br>
-  <input type="text" id="username" name="username" placeholder="Username" value=""><br>
-  
-  <label for="password">Password:</label><br>
+      <input type="text" id="username" name="username" value="" placeholder="Username" pattern="^[a-z]*$" title="username can only be lowercase with no spaces."><br>
+      <label for="password">Password:</label><br>
   <input type="text" id="password" name="password" value="" placeholder="Password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*?[~`!@#$%\^&*()\-_=+[\]{};:\x27.,\x22\\|/?><]).{1,}" title="Password must have at least one lowercase letter, one uppercase, one number, and a special character."><br>
-
   <label for="password">Re-enter Password:</label><br>
   <input type="text" id="repassword" name="repassword" value="" placeholder="Re-enter Password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*?[~`!@#$%\^&*()\-_=+[\]{};:\x27.,\x22\\|/?><]).{1,}" title="Password must have at least one lowercase letter, one uppercase, one number, and a special character."><br>
-
-  
-	<br>
+  <br>
   <button name="registeruser" value="Register User" class="btn btn-dark">Register User</button>
-  
   </form>
 </div>
+</main>
+</div>
 
-       </main>
-
-        <footer>
-		<div>
-            Service provided by YellowTeam 2021
-		</div>
-        </footer>
 </body>
 </html>
