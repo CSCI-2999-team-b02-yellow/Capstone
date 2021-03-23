@@ -77,7 +77,7 @@ if(isset($_POST['submit'])){
 <head>
     <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/index.css" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
     <title>Update Products</title>
 </head>
 
@@ -113,7 +113,7 @@ if(isset($_POST['submit'])){
     </div>
 </div>
 
-<div class="main">
+
     <main class="container p-5">
         <h2> Update Products </h2>
         <br><br>
@@ -130,10 +130,11 @@ if(isset($_POST['submit'])){
                 }
                 // A loop function to display all the products in the database.
                 while( $products = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC) ) {
-                    $product=$products["productName"];?>
+                    $product=$products["productName"];
+                    ?>
                     <li><a>
                             <input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
-                            <label for=""> <?php echo $product. " " .$products["productSKU"];?> </label>
+                            <label for=""> <?php echo $product." ".$products["productSKU"]." ".$products["itemDescription"]." ".$products["price"];?> </label>
                         </a></li>
                     <?php
                 }?>
@@ -151,7 +152,7 @@ if(isset($_POST['submit'])){
         </form>
         <br>
     </main>
-</div>
+
 
 <script>
 function myFunction() {
