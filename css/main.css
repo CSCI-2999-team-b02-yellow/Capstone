@@ -4,6 +4,7 @@
 /* Changed overflow hidden => auto. Ideally we don't hit overflow, but if we did content is visible with scroll bars. */
 
 .header {
+  line-height: normal; /* The culprit that was scaling our navbar, that we need to override from bootstrap */
   background-color: black;
   overflow: auto;
   top: 0;

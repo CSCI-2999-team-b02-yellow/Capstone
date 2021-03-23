@@ -4,6 +4,7 @@
 /* Changed overflow hidden => auto. Ideally we don't hit overflow, but if we did content is visible with scroll bars. */
 
 .header {
+  line-height: normal; /* The culprit that was scaling our navbar, that we need to override from bootstrap */
   background-color: black;
   overflow: auto;
   top: 0;
@@ -34,7 +35,6 @@
   margin: 0px auto;
   position: relative;
   right:-69%;
-
 }
 
 /* Removed background-image stuff from main.css (used for all pages but index); only index css has logo on background */
