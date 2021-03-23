@@ -29,17 +29,17 @@ $username_err = $password_err = "";
 
 // isset listens to see if a button with the name 'submit' is clicked inside HTML:
 if(isset($_POST['submit'])) {
-	
-    // Check if username & password are empty (trim is necessary); return prevents other code from executing if there's an error:
+
+    $checkpoint1Passed = false;
+    // Check if username & password are empty (trim is necessary);
     if(empty(trim($_POST["username"]))) {
-        $username_err = "Please enter username.";
-		return;
+        $username_err = "Please enter your username.";
     } elseif(empty(trim($_POST["password"]))) {
         $password_err = "Please enter your password.";
-		return;
     } else {
         $username = trim($_POST["username"]);
         $password = trim($_POST["password"]);
+        $checkpoint1Passed = true;
     }
 	
 	/* Prepared statement (avoids SQL injection) - parameters go inside the array in the SQL sqlsrv_prepare statement;
@@ -48,114 +48,128 @@ if(isset($_POST['submit'])) {
 	 * values into columns, but not columns themselves. So you'd have to introduce a method that goes through
 	 * all the columns in the table as literal strings and checks if the inserted column matches it first.
 	 */
-	 
-	// Introducing try, catch, finally statement to always close conn/free resources, and handle errors:
-	try {
 
-	    // Outline of the SQL statement, ? is used for user input to prevent SQL injection
-        // this feels vulnerable to some sort of dump though it's server-side --> we should probably select things only if username & password match
-		$sql = "SELECT ID, fullname, username, password, accesslevel FROM yellowteam.dbo.users WHERE username = ?";
+    $checkpoint2Passed = false;
+    if ($checkpoint1Passed === true) {
+        $sql = "SELECT username FROM yellowteam.dbo.users WHERE username = ?";
+        $username = $_POST['username'];
+        $stmt = sqlsrv_prepare($conn, $sql, array($username));
+        sqlsrv_execute($stmt);
 
-		// loading username/password from HTML form name to PHP variables
-		$username = $_POST['username'];
-		$password = $_POST['password'];
-
-		// Loads connection info, our sql, and parameters ($username) into the prepared statement
-		$stmt = sqlsrv_prepare($conn, $sql, array($username));
-		
-		// checks the prepared statement for errors, sqlsrv_prepare returns false if there's an error;
-		// not sure if this is necessary in try-catch-finally block though, will check later -- maybe convert elses to throws?
-		if($stmt) {  
-			 echo '<script>console.log("Statement prepared.\n")</script>';  
-		} else {  
-			 echo '<script>console.log("Error in preparing statement.\n")</script>';
-		} 
-		
-		// use the prepared statement on the database: returns true/false;
-		if(sqlsrv_execute($stmt)) {  
-			  echo '<script>console.log("Statement executed.\n")</script>';  
-		} else {  
-			 echo '<script>console.log("Error in executing statement.\n")</script>';
-		}
-		
-		// check that username returns only 1 result row -- just extra precaution against any db issues;
-		// right now this is only logging issues, not preventing login
-		if(sqlsrv_num_rows($stmt) != 1) {
-			// introduce: if returned rows are not 1 throw custom exception
-			echo '<script>console.log("Returned rows not equal to one!\n")</script>';  
-		} else {  
-			 echo '<script>console.log("Row check passed.")</script>';
-		}
-		
-		// sqlsrv_fetch_array stores results, and grabs each row
-		// this saves sessionID, username, password to variables; will need a hashpassword method to convert $row['password'] for comparison;
-		while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-			$ID = $row['ID'];
-			$fullname = $row['fullname'];
-			$username = $row['username'];
-			$hashed_password = $row['password'];
-			$accesslevel = $row['accesslevel'];
-		}
-
-        /* Will need to reintroduce password_verify($password, $hash) which does a comparison
-         * between plaintext password and the hash in the database. Need to see what method
-         * can be used to convert plaintext to hash, so all registered users make hashed passwords.
-         */
-
-        // checks form password matches database password, and that user access is at least lvl 2
-		if($password === $hashed_password && $accesslevel > 1) {
-            $banTime = failCheck($conn, $username);
-            if ($banTime === null) {
-                // Store data in session variables, username basically means user is logged in
-                $_SESSION["username"] = $username;
-                $_SESSION["accesslevel"] = $accesslevel;
-                welcomeRedirect($fullname, 'employees.php');
-            } else {
-                $minutes = $banTime / 60;
-                $seconds = $banTime % 60;
-                echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.')</script>";
-            }
-		} elseif ($password === $hashed_password && $accesslevel === 1) {
-            $banTime = failCheck($conn, $username);
-            if ($banTime === null) {
-                // Store data in session variables, username being set is same as loggedin = true, removed redundancy
-                $_SESSION["username"] = $username;
-                $_SESSION["accesslevel"] = $accesslevel;
-                // customers.php is a placeholder, we can rename the URL once a page is established
-                welcomeRedirect($fullname, 'customers.php');
-            } else {
-                $minutes = $banTime / 60;
-                $seconds = $banTime % 60;
-                echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.')</script>";
-            }
+        // check that username returns only 1 result row -- just extra precaution against any db issues;
+        // right now this is only logging issues, not preventing login
+        if(sqlsrv_num_rows($stmt) != 1) {
+            // introduce: if returned rows are not 1 throw custom exception
+            echo '<script>console.log("Returned rows not equal to one!\n")</script>';
+            $username_err = "Username does not exist.";
         } else {
-            // if the password is wrong, display error message & log the datetime stamp in the database:
-            $password_err = "The password you've entered is not correct.";
-            $sql = "INSERT INTO yellowteam.dbo.failedlogin (username, failedlogin) VALUES (?, CURRENT_TIMESTAMP)";
+            echo '<script>console.log("Row check passed.")</script>';
+            $checkpoint2Passed = true;
+        }
+    }
+
+    if ($checkpoint2Passed === true) {
+        // Introducing try, catch, finally statement to always close conn/free resources, and handle errors:
+        try {
+
+            // Outline of the SQL statement, ? is used for user input to prevent SQL injection
+            // this feels vulnerable to some sort of dump though it's server-side --> we should probably select things only if username & password match
+            $sql = "SELECT ID, fullname, username, password, accesslevel FROM yellowteam.dbo.users WHERE username = ?";
+
+            // loading username/password from HTML form name to PHP variables
+            $username = $_POST['username'];
+            $password = $_POST['password'];
+
+            // Loads connection info, our sql, and parameters ($username) into the prepared statement
             $stmt = sqlsrv_prepare($conn, $sql, array($username));
-            if(sqlsrv_execute($stmt)) {
-                echo '<script>console.log("Successfully logged failed login attempt.\n")</script>';
+
+            // checks the prepared statement for errors, sqlsrv_prepare returns false if there's an error;
+            // not sure if this is necessary in try-catch-finally block though, will check later -- maybe convert elses to throws?
+            if($stmt) {
+                echo '<script>console.log("Statement prepared.\n")</script>';
             } else {
-                echo '<script>console.log("Error in logging failed login attempt.\n")</script>';
+                echo '<script>console.log("Error in preparing statement.\n")</script>';
             }
 
-            // call failCheck() function to see if it returns null or the time remaining until login ban expires:
-            $banTime = failCheck($conn, $username);
-            if ($banTime !== null) {
-				// unlike strongly-typed languages, integer division needs floored in PHP to return a decimal value:
-                $minutes = floor($banTime / 60);
-                $seconds = $banTime % 60;
-                echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.".
-                    '\n\n'."Note: Trying to log in during this window will extend the time you must wait.')</script>";
+            // use the prepared statement on the database: returns true/false;
+            if(sqlsrv_execute($stmt)) {
+                echo '<script>console.log("Statement executed.\n")</script>';
+            } else {
+                echo '<script>console.log("Error in executing statement.\n")</script>';
             }
-		}
-	} catch (exception $e) {
-		// Need to look up and introduce error handling logic here:
-	} finally {
-		// This ALWAYS executes (even after return!) & we always want to close the connection & free query result resources;
-		sqlsrv_free_stmt($stmt);
-		sqlsrv_close($conn);
-	}
+
+            // sqlsrv_fetch_array stores results, and grabs each row
+            // this saves sessionID, username, password to variables; will need a hashpassword method to convert $row['password'] for comparison;
+            while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+                $ID = $row['ID'];
+                $fullname = $row['fullname'];
+                $username = $row['username'];
+                $hashed_password = $row['password'];
+                $accesslevel = $row['accesslevel'];
+            }
+
+            /* Will need to reintroduce password_verify($password, $hash) which does a comparison
+             * between plaintext password and the hash in the database. Need to see what method
+             * can be used to convert plaintext to hash, so all registered users make hashed passwords.
+             */
+
+            // checks form password matches database password, and that user access is at least lvl 2
+            if($password === $hashed_password && $accesslevel > 1) {
+                $banTime = failCheck($conn, $username);
+                if ($banTime === null) {
+                    // Store data in session variables, username basically means user is logged in
+                    $_SESSION["username"] = $username;
+                    $_SESSION["accesslevel"] = $accesslevel;
+                    welcomeRedirect($fullname, 'employees.php');
+                } else {
+                    $minutes = $banTime / 60;
+                    $seconds = $banTime % 60;
+                    echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.')</script>";
+                }
+            } elseif ($password === $hashed_password && $accesslevel === 1) {
+                $banTime = failCheck($conn, $username);
+                if ($banTime === null) {
+                    // Store data in session variables, username being set is same as loggedin = true, removed redundancy
+                    $_SESSION["username"] = $username;
+                    $_SESSION["accesslevel"] = $accesslevel;
+                    // customers.php is a placeholder, we can rename the URL once a page is established
+                    welcomeRedirect($fullname, 'customers.php');
+                } else {
+                    $minutes = $banTime / 60;
+                    $seconds = $banTime % 60;
+                    echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.')</script>";
+                }
+            } else {
+                // if the password is wrong, display error message & log the datetime stamp in the database:
+                $password_err = "The password you've entered is not correct.";
+                $sql = "INSERT INTO yellowteam.dbo.failedlogin (username, failedlogin) VALUES (?, CURRENT_TIMESTAMP)";
+                $stmt = sqlsrv_prepare($conn, $sql, array($username));
+                if(sqlsrv_execute($stmt)) {
+                    echo '<script>console.log("Successfully logged failed login attempt.\n")</script>';
+                } else {
+                    echo '<script>console.log("Error in logging failed login attempt.\n")</script>';
+                }
+
+                // call failCheck() function to see if it returns null or the time remaining until login ban expires:
+                $banTime = failCheck($conn, $username);
+                if ($banTime !== null) {
+                    // unlike strongly-typed languages, integer division needs floored in PHP to return a decimal value:
+                    $minutes = floor($banTime / 60);
+                    $seconds = $banTime % 60;
+                    echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.".
+                        '\n\n'."Note: Trying to log in during this window will extend the time you must wait.')</script>";
+                }
+            }
+        } catch (exception $e) {
+            // Need to look up and introduce error handling logic here:
+        } finally {
+            // This ALWAYS executes (even after return!) & we always want to close the connection & free query result resources;
+            sqlsrv_free_stmt($stmt);
+            sqlsrv_close($conn);
+        }
+    }
+    // this ends checkpoint 3 logic
+
 }
 
 function welcomeRedirect($fullname, $url) {
@@ -198,7 +212,6 @@ function failCheck($conn, $username) {
 		
         // also getting current time (datetime) from the database:
         $sql = "SELECT CURRENT_TIMESTAMP AS currentTime";
-        $stmt = sqlsrv_prepare($conn, $sql);
         $stmt = sqlsrv_prepare($conn, $sql, array($username), array( "Scrollable" => "buffered"));
         if(sqlsrv_execute($stmt)) {
             echo '<script>console.log("Successfully retrieved current time.\n")</script>';
@@ -300,6 +313,7 @@ function failCheck($conn, $username) {
             <div class="form-group">
                 <input type="submit" name="submit" class="btn btn-primary" value="Login">
             </div>
+            <p>Don't have an account? <a href="placeholderForUserRegistration.php">Sign up now</a>.</p>
         </form>
     </div>    
 </body>
