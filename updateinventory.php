@@ -114,44 +114,43 @@ if(isset($_POST['submit'])){
 </div>
 
 <div class="main">
-<main class="container p-5">
-<h2> Update Products </h2>
-<input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search/Filter for a product.." title="Type in a Product Name"> <br>
-    Please select the products to update<br><br>
-    <form action="" method="POST">
-    <ul id="myUL">
-        <?php
-        // using php in the <select> to show dynamically the product in the webpage.
-        $sql = "SELECT * FROM inventory ORDER BY productName";
-        $query = sqlsrv_query( $conn, $sql);
-        if( $query === false ) {
-             die( print_r( sqlsrv_errors(), true));
-        }
-        // A loop function to display all the products in the database.
-        while( $products = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC) ) {
-                $product=$products["productName"];?>
-             <li><a>
-                <input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
-                <label for=""> <?php echo $product. " " .$products["productSKU"];?> </label>
-                </a></li>
-        <?php
-        }?>
-
-      <br>
-
-      <select name="update">
-        <option value="">Choose what to change from the product</option>
-        <option value="sku">Product SKU</option>
-        <option value="price">Price</option>
-        <option value="description">Description</option>
-      </select>
-      <br><br>
-      <input type='text' name='newUpdate' id='newUpdate' placeholder="The New Update">
-      <br><br>
-      <button name="submit" class="btn btn-dark">Update</button>
-    </form>
-    <br>
-</main>
+    <main class="container p-5">
+        <h2> Update Products </h2>
+        <br><br>
+        <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search/Filter for a product.." title="Type in a Product Name"> <br>
+        Please select the products to update<br><br>
+        <form action="" method="POST">
+            <ul id="myUL">
+                <?php
+                // using php in the <select> to show dynamically the product in the webpage.
+                $sql = "SELECT * FROM inventory ORDER BY productName";
+                $query = sqlsrv_query( $conn, $sql);
+                if( $query === false ) {
+                    die( print_r( sqlsrv_errors(), true));
+                }
+                // A loop function to display all the products in the database.
+                while( $products = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC) ) {
+                    $product=$products["productName"];?>
+                    <li><a>
+                            <input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
+                            <label for=""> <?php echo $product. " " .$products["productSKU"];?> </label>
+                        </a></li>
+                    <?php
+                }?>
+                <br>
+                <select name="update">
+                    <option value="">Choose what to change from the product</option>
+                    <option value="sku">Product SKU</option>
+                    <option value="price">Price</option>
+                    <option value="description">Description</option>
+                </select>
+                <br><br>
+                <input type='text' name='newUpdate' id='newUpdate' placeholder="The New Update">
+                <br><br>
+                <button name="submit" class="btn btn-dark">Update</button>
+        </form>
+        <br>
+    </main>
 </div>
 
 <script>
