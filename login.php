@@ -313,7 +313,7 @@ function failCheck($conn, $username) {
             <div class="form-group">
                 <input type="submit" name="submit" class="btn btn-primary" value="Login">
             </div>
-            <p>Don't have an account? <a href="placeholderForUserRegistration.php">Sign up now</a>.</p>
+            <p>Don't have an account? <a href="users.php">Sign up now</a>.</p>
         </form>
     </div>    
 </body>

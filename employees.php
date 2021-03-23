@@ -35,18 +35,17 @@ if(isset($_POST['addemployee'])){
 	
 	// Other conditions to update the database.	
 	}else{
-		 
-		$password = $_POST['password'];
-		$firstname = $_POST['employeefirstname'];
-		$lastname = $_POST['employeelastname'];
-		$username = $_POST['username'];
-		
-	// placeholders (?) are used in SQL statements to prepare a statement & prevent SQL injection
-		$sql = "INSERT INTO yellowteam.dbo.employees (firstname, lastname, username, password)
-				VALUES (?, ?, ?, ?)";
-			
-		// prepares our statement with connection info, all variables inside placeholders in sql:
-		$stmt = sqlsrv_prepare( $conn, $sql, array(&$firstname, &$lastname, &$username, &$password));
+
+        $fullname = $_POST['fullname'];
+        $username = $_POST['username'];
+        $password = $_POST['password'];
+
+        // placeholders (?) are used in SQL statements to prepare a statement & prevent SQL injection
+        $sql = "INSERT INTO yellowteam.dbo.employees (fullname, username, password, accesslevel)
+				VALUES (?, ?, ?, 2)";
+
+        // prepares our statement with connection info, all variables inside placeholders in sql:
+        $stmt = sqlsrv_prepare( $conn, $sql, array(&$fullname, &$username, &$password, &$accesslevel));
 		
 		// checks the statement for errors, sqlsrv_prepare returns false if there's an error:
 		if( $stmt )  
@@ -133,23 +132,18 @@ if(isset($_POST['addemployee'])){
 <div class="content">  
   <h1>Nuts and Bolts Hardware</h1>
   <h3>Employees Page</h3>
-  
-  <!-- edited action="" since we don't have a PHP file to forward to, added method="POST" -Tomas -->
+
   <form action="" method="POST">
   <label for="employeefirstname">First Name:</label><br>
-  <input type="text" id="employeefirstname" name="employeefirstname" placeholder="First Name" value=""><br>
-  
-  <label for="employeelastname">Last Name:</label><br>
-  <input type="text" id="employeelastname" name="employeelastname" placeholder="Last Name" value=""><br>
-  
-    <label for="username">Username:</label><br>
-	<!-- old pattern for username: "[a-z].{1,}" new pattern: ^[a-z]*$ -->
+  <input type="text" id="fullname" name="fullname" placeholder="Full Name" value=""><br>
+
+  <label for="username">Username:</label><br>
   <input type="text" id="username" name="username" value="" placeholder="Username" pattern="^[a-z]*$" title="username can only be lowercase with no spaces."><br>
   
-    <label for="password">Password:</label><br>
+  <label for="password">Password:</label><br>
   <input type="text" id="password" name="password" value="" placeholder="Password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*?[~`!@#$%\^&*()\-_=+[\]{};:\x27.,\x22\\|/?><]).{1,}" title="Password must have at least one lowercase letter, one uppercase, one number, and a special character."><br>
 
-<label for="password">Re-enter Password:</label><br>
+  <label for="password">Re-enter Password:</label><br>
   <input type="text" id="repassword" name="repassword" value="" placeholder="Re-enter Password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*?[~`!@#$%\^&*()\-_=+[\]{};:\x27.,\x22\\|/?><]).{1,}" title="Password must have at least one lowercase letter, one uppercase, one number, and a special character."><br>
 
   

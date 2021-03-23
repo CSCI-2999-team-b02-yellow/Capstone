@@ -3,10 +3,6 @@
 session_start();
 // Adding code to redirect to login page if employee is not logged in:
 
-if(!isset($_SESSION["username"])){
-   header("location: login.php");
-}
-
 // SQLSRV are Microsoft developed drivers, PDO_SQLSRV or PDO are community developed drivers for MSSQL
 // $serverName is just the URL our database is hosted on:
 $serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
@@ -35,15 +31,14 @@ if(isset($_POST['registeruser'])){
 	
 	// Other conditions to update the database.	
 	}else{
-		 
-		$password = $_POST['password'];
-		$firstname = $_POST['fullname'];
-		$lastname = $_POST['username'];
-		$username = $_POST['accesslevel'];
+
+		$fullname = $_POST['fullname'];
+		$username = $_POST['username'];
+        $password = $_POST['password'];
 		
 	// placeholders (?) are used in SQL statements to prepare a statement & prevent SQL injection
 		$sql = "INSERT INTO yellowteam.dbo.employees (fullname, username, password, accesslevel)
-				VALUES (?, ?, ?, ?)";
+				VALUES (?, ?, ?, 1)";
 			
 		// prepares our statement with connection info, all variables inside placeholders in sql:
 		$stmt = sqlsrv_prepare( $conn, $sql, array(&$fullname, &$username, &$password, &$accesslevel));
