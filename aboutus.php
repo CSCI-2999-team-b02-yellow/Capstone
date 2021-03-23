@@ -40,7 +40,9 @@ session_start();
                     echo '<a href="employees.php">Employees</a>';
                 }
             }?>
-            <a href="login.php">Login</a>
+            <?php if(!isset($_SESSION["username"])) {
+                echo '<a href="login.php">Login</a>';
+            }?>
             <?php if(isset($_SESSION["username"])) {
                 echo '<a href="logout.php">Logout</a>';
             }?>
