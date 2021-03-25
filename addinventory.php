@@ -92,17 +92,8 @@ if(isset($_POST['addInv'])){
 }
 ?>
 
-
 <!DOCTYPE html>
-<!--Yellow Team
-Jeremy Wellman
-Kyle Snyder
-Nicholas Seelbach
-Rassim Yahioune
-Thomas Rothwell
-Tomas Kasparaitis
-2/16/2021-->
-<html>
+<html lang="en">
 
 <head>
   <meta charset="utf-8">
@@ -111,7 +102,14 @@ Tomas Kasparaitis
   <meta name="description" content="Nuts and bolts hardware company add products page">
   <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, products, add, add products">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet"> <!-- also makes page responsive -->
   <link href="css/index.css" rel="stylesheet">
+  <!-- Generated using favicon.io, provides logo icon on browser tab; need these 4 lines to function: -->
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+  <link rel="manifest" href="img/site.webmanifest">
 </head>
 
 <body>

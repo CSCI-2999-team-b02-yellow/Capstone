@@ -11,15 +11,25 @@ session_start();
 	
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/main.css" rel="stylesheet">
+    <meta charset="UTF-8">
     <title>Products</title>
+    <meta name="author" content="Team Yellow">
+    <meta name="description" content="Nuts and bolts hardware company products page">
+    <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, products, inventory">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet"> <!-- also makes page responsive -->
+    <link href="css/main.css" rel="stylesheet">
+    <!-- Generated using favicon.io, provides logo icon on browser tab; need these 4 lines to function: -->
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="manifest" href="img/site.webmanifest">
 </head>
 
 <body>
-
 <div class="header">
     <div class="links">
         <a href="index.php">Home</a>

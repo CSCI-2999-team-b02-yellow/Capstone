@@ -71,18 +71,26 @@ if(isset($_POST['submit'])){
 ?>
 
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
-    <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/main.css" rel="stylesheet">
+    <meta charset="UTF-8">
     <title>Update Products</title>
+    <meta name="author" content="Team Yellow">
+    <meta name="description" content="Nuts and bolts hardware company update products page">
+    <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, update products, update inventory, update">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet"> <!-- also makes page responsive -->
+    <link href="css/main.css" rel="stylesheet">
+    <!-- Generated using favicon.io, provides logo icon on browser tab; need these 4 lines to function: -->
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="manifest" href="img/site.webmanifest">
 </head>
 
 <body>
-
 <div class="header">
     <div class="links">
         <a href="index.php">Home</a>
@@ -113,46 +121,44 @@ if(isset($_POST['submit'])){
     </div>
 </div>
 
-
-    <main class="container p-5">
-        <h2> Update Products </h2>
-        <br><br>
-        <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search/Filter for a product.." title="Type in a Product Name"> <br>
-        Please select the products to update<br><br>
-        <form action="" method="POST">
-            <ul id="myUL">
+<main class="container p-5">
+    <h2> Update Products </h2>
+    <br><br>
+    <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search/Filter for a product.." title="Type in a Product Name"> <br>
+    Please select the products to update<br><br>
+    <form action="" method="POST">
+        <ul id="myUL">
+            <?php
+            // using php in the <select> to show dynamically the product in the webpage.
+            $sql = "SELECT * FROM inventory ORDER BY productName";
+            $query = sqlsrv_query( $conn, $sql);
+            if( $query === false ) {
+                die( print_r( sqlsrv_errors(), true));
+            }
+            // A loop function to display all the products in the database.
+            while( $products = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC) ) {
+                $product=$products["productName"];
+                ?>
+                <li><a>
+                        <input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
+                        <label for=""> <?php echo $product." ".$products["productSKU"]." ".$products["itemDescription"]."  $".round($products["price"],2);?> </label>
+                    </a></li>
                 <?php
-                // using php in the <select> to show dynamically the product in the webpage.
-                $sql = "SELECT * FROM inventory ORDER BY productName";
-                $query = sqlsrv_query( $conn, $sql);
-                if( $query === false ) {
-                    die( print_r( sqlsrv_errors(), true));
-                }
-                // A loop function to display all the products in the database.
-                while( $products = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC) ) {
-                    $product=$products["productName"];
-                    ?>
-                    <li><a>
-                            <input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
-                            <label for=""> <?php echo $product." ".$products["productSKU"]." ".$products["itemDescription"]."  $".round($products["price"],2);?> </label>
-                        </a></li>
-                    <?php
-                }?>
-                <br>
-                <select name="update">
-                    <option value="">Choose what to change from the product</option>
-                    <option value="sku">Product SKU</option>
-                    <option value="price">Price</option>
-                    <option value="description">Description</option>
-                </select>
-                <br><br>
-                <input type='text' name='newUpdate' id='newUpdate' placeholder="The New Update">
-                <br><br>
-                <button name="submit" class="btn btn-dark">Update</button>
-        </form>
-        <br>
-    </main>
-
+            }?>
+            <br>
+            <select name="update">
+                <option value="">Choose what to change from the product</option>
+                <option value="sku">Product SKU</option>
+                <option value="price">Price</option>
+                <option value="description">Description</option>
+            </select>
+            <br><br>
+            <input type='text' name='newUpdate' id='newUpdate' placeholder="The New Update">
+            <br><br>
+            <button name="submit" class="btn btn-dark">Update</button>
+    </form>
+    <br>
+</main>
 
 <script>
 function myFunction() {

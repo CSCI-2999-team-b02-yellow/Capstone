@@ -49,8 +49,9 @@ body {
   color: lightgray; /* Solves our Contact Us page having invisible writing; */
   font-family: "Lucida Console", "Courier New", monospace; /* Redundant, consolidated */
   border: 5px dotted lightgray;
+  /* background-color: rgba(0, 0, 0, .7); *//* Makes background opaque, while text is clear if opacity is disabled */
   background-color: black;
-  opacity: 0.7; /* Trying to make the logo a bit more visible while text is readable */
+  opacity: 0.7; /* Trying to make the logo a bit more visible while text is readable; comment out for rgba background option */
   text-align: center;
   display: inline-block;
   padding-right: 20px;
