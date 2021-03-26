@@ -113,27 +113,20 @@ if(isset($_POST['submit'])) {
              * can be used to convert plaintext to hash, so all registered users make hashed passwords.
              */
 
-            // checks form password matches database password, and that user access is at least lvl 2
-            if($password === $hashed_password && $accesslevel > 1) {
+            // checks form password matches database password
+            if($password === $hashed_password) {
                 $banTime = failCheck($conn, $username);
                 if ($banTime === null) {
                     // Store data in session variables, username basically means user is logged in
                     $_SESSION["username"] = $username;
                     $_SESSION["accesslevel"] = $accesslevel;
-                    welcomeRedirect($fullname, 'employees.php');
-                } else {
-                    $minutes = $banTime / 60;
-                    $seconds = $banTime % 60;
-                    echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.')</script>";
-                }
-            } elseif ($password === $hashed_password && $accesslevel === 1) {
-                $banTime = failCheck($conn, $username);
-                if ($banTime === null) {
-                    // Store data in session variables, username being set is same as loggedin = true, removed redundancy
-                    $_SESSION["username"] = $username;
-                    $_SESSION["accesslevel"] = $accesslevel;
-                    // customers.php is a placeholder, we can rename the URL once a page is established
-                    welcomeRedirect($fullname, 'index.php');
+                    // TODO: this is our login, add cookie logic here:
+                    // divide where user goes based on access level:
+                    if ($accesslevel > 1) {
+                        welcomeRedirect($fullname, 'employees.php');
+                    } else {
+                        welcomeRedirect($fullname, 'index.php');
+                    }
                 } else {
                     $minutes = $banTime / 60;
                     $seconds = $banTime % 60;
@@ -169,8 +162,55 @@ if(isset($_POST['submit'])) {
         }
     }
     // this ends checkpoint 3 logic
-
 }
+
+function getLocalID() {
+    // TODO: When I log in successfully, check if a cookie exists locally with a cookieID.
+    $localID = null;
+    if(isset($_COOKIE[$cookie_name])) {
+        $localID = $_COOKIE[$cookie_value];
+    }
+    return $localID;
+}
+
+function getDatabaseID($conn, $username) {
+    // TODO: When I log in successfully, check if a cookieID exists for the username in the database.
+    $databaseID = null;
+    try {
+        $sql = "SELECT cookieID FROM yellowteam.dbo.cookie WHERE username = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($username), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            $databaseID = $row['cookieID'];
+        }
+    } catch (exception $e) {
+        // Need to look up and introduce error handling logic here:
+    } finally {
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+    }
+    return $databaseID;
+}
+
+function reconcileID($localID, $databaseID) {
+    // TODO: (Optional rare case). If the cookieID exists in the database, but not locally, update/create cookie with cookieID from database.
+    if ($localID === null && $databaseID !== null) {
+        $localID = $databaseID;
+        setcookie($cookie_name, $localID, time() + (86400 * 30), "/"); // 30-day expiration: 86400 is the seconds in a day
+    }
+
+    // TODO: If the cookieID in the cookie (local) does not match the database (server), handle the conflict:
+    // TODO: Given database cookieID, we make an update statement to replace all instances of local cookieID with database cookieID in the "orders" table.
+    // If neither local nor database IDs are null, and they are not the same, update local ID with database ID:
+    if ($localID !== null && $databaseID !== null && $localID !== $databaseID) {
+
+    }
+
+
+        // TODO: Error Handling: If the sql statement failed (for example, syntax error etc.), we do nothing. Don't wipe the cart by accident!
+}
+
+// TODO: Make separate PHP file for generating a low-collision unique identifier, so it can be used by both login & products pages
 
 function welcomeRedirect($fullname, $url) {
     // Redirects user to a specific URL. Note this must be done in JavaScript! Hope you've got it installed
