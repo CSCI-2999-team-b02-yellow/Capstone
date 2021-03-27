@@ -121,6 +121,10 @@ if(isset($_POST['submit'])) {
                     $_SESSION["username"] = $username;
                     $_SESSION["accesslevel"] = $accesslevel;
                     // TODO: this is our login, add cookie logic here:
+                    $localID = getLocalID();
+                    $databaseID = getDatabaseID($conn, $username);
+                    reconcileID($localID, $databaseID);
+
                     // divide where user goes based on access level:
                     if ($accesslevel > 1) {
                         welcomeRedirect($fullname, 'employees.php');
@@ -216,6 +220,8 @@ function updateDatabaseID($conn, $username, $localID, $databaseID) {
 
         // third we update the cookieID and orderID in the orders table to that of the ones associated with the username
         $sql = "UPDATE yellowteam.dbo.orders SET orderID = ?, cookieID = ? WHERE orderID = ?, cookiedID = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($databaseOrderID, $databaseID, $localOrderID, $localID), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
 
         // we can then remove the row containing the local cookieID with no username attached once we have the orderID:
         $sql = "DELETE FROM yellowteam.dbo.cookie WHERE cookieID = ?";
@@ -243,7 +249,7 @@ function reconcileID($localID, $databaseID) {
     // TODO: If the cookieID in the cookie (local) does not match the database (server), handle the conflict:
     // If neither local nor database IDs are null, and they are not the same, update local ID with database ID:
     if ($localID !== null && $databaseID !== null && $localID !== $databaseID) {
-
+        updateDatabaseID($conn, $username, $localID, $databaseID);
     }
 }
 
