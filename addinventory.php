@@ -40,17 +40,11 @@ if(isset($_POST['addInv'])){
 		  *	 </script>';
 		  */
 	}
-	
-	//------------------------------------------- 
-	// itemID is (PK, int, not null)
-	// productName is (varchar(60), null)
-	// productSKU is (varchar(10), null)
-	// itemDescription is (varchar(5000), null)
-	// price is (smallmoney, null)
-	//-------------------------------------------
+
+	// added stock to inventory table in preparation for other stories, adding stock as 0 currently 3/27/2021
 	// placeholders (?) are used in SQL statements to prepare a statement & prevent SQL injection
-	$sql = "INSERT INTO yellowteam.dbo.inventory (productName, productSKU, itemDescription, price)
-			VALUES (?, ?, ?, ?)";
+	$sql = "INSERT INTO yellowteam.dbo.inventory (productName, productSKU, itemDescription, price, stock)
+			VALUES (?, ?, ?, ?, 0)";
 		
 	//----------------------------------------------------------------------------------------------------------------  
 	// Using $_POST['addInv'] to trigger form, and then using $_POST['name'] to pull user input into variables.

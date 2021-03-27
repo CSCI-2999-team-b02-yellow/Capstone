@@ -7,6 +7,27 @@ session_start();
 	$connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
 	$conn = sqlsrv_connect( $serverName, $connectionInfo);
 
+function checkCookie() {
+    // TODO: If a cookie does not exist create a cookieID and an orderID.
+    // Basically call cookieID generator, store it locally & store it again in database, orderID is PK and auto generated
+    // TODO: Store cookieID & orderID in the database “cookie” table.
+    // TODO: Add product to orders table using itemID (pulled from inventory table), orderID (pulled from cookie), and quantity (pulled from front end user input).
+    // TODO: To meet story requirements we have to be able to add more than 1 of the same item from this page
+    // TODO: If cookieID exists (locally), add product to orders table using itemID (pulled from inventory table), orderID (pulled from cookie), and quantity (pulled from front end user input).
+    $localID = null;
+    // TODO: If someone adds a product to a cart, check if a cookie exists with cookieID on the client computer.
+    if(isset($_COOKIE[$cookie_name])) {
+        $localID = $_COOKIE[$cookie_value]; // does this assume that our site's cookie is where the value is being looked for? or does it need cookie name?
+    } else {
+        // TODO: Store cookieID in the cookie (locally).
+        setcookie($cookie_name, $localID, time() + (86400 * 30), "/"); // 30-day expiration: 86400 is the seconds in a day
+        // TODO: $localID = someCookieIDgenerator();
+    }
+    return $localID;
+}
+
+
+
 ?>
 	
 <!DOCTYPE html>
