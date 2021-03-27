@@ -192,6 +192,47 @@ function getDatabaseID($conn, $username) {
     return $databaseID;
 }
 
+
+//TODO: Given database cookieID, we make an update statement to replace all instances of local cookieID with database cookieID in the "orders" table.
+function updateDatabaseID($conn, $username, $localID, $databaseID) {
+    try {
+        // first we get the orderID associated with the username:
+        $databaseOrderID = null;
+        $sql = "SELECT orderID FROM yellowteam.dbo.cookie WHERE username = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($username), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            $databaseOrderID = $row['orderID'];
+        }
+
+        // second we get the orderID associated with the local cookie:
+        $localOrderID = null;
+        $sql = "SELECT orderID FROM yellowteam.dbo.cookie WHERE cookieID = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($localID), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            $localOrderID = $row['orderID'];
+        }
+
+        // third we update the cookieID and orderID in the orders table to that of the ones associated with the username
+        $sql = "UPDATE yellowteam.dbo.orders SET orderID = ?, cookieID = ? WHERE orderID = ?, cookiedID = ?";
+
+        // we can then remove the row containing the local cookieID with no username attached once we have the orderID:
+        $sql = "DELETE FROM yellowteam.dbo.cookie WHERE cookieID = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($localID), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+
+        // TODO: Error Handling: If the sql statement failed (for example, syntax error etc.), we do nothing. Don't wipe the cart by accident!
+        // once finished we can change local cookie ID to the database cookie ID!
+
+    } catch (exception $e) {
+        // Need to look up and introduce error handling logic here:
+    } finally {
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+    }
+}
+
 function reconcileID($localID, $databaseID) {
     // TODO: (Optional rare case). If the cookieID exists in the database, but not locally, update/create cookie with cookieID from database.
     if ($localID === null && $databaseID !== null) {
@@ -200,17 +241,16 @@ function reconcileID($localID, $databaseID) {
     }
 
     // TODO: If the cookieID in the cookie (local) does not match the database (server), handle the conflict:
-    // TODO: Given database cookieID, we make an update statement to replace all instances of local cookieID with database cookieID in the "orders" table.
     // If neither local nor database IDs are null, and they are not the same, update local ID with database ID:
     if ($localID !== null && $databaseID !== null && $localID !== $databaseID) {
 
     }
-
-
-        // TODO: Error Handling: If the sql statement failed (for example, syntax error etc.), we do nothing. Don't wipe the cart by accident!
 }
 
-// TODO: Make separate PHP file for generating a low-collision unique identifier, so it can be used by both login & products pages
+// This function generates a pseudo-random 50-character alphanumeric string, our db stores 50 varchar cookieIDs
+function genCookieID() {
+    return bin2hex(random_bytes(50));
+}
 
 function welcomeRedirect($fullname, $url) {
     // Redirects user to a specific URL. Note this must be done in JavaScript! Hope you've got it installed
