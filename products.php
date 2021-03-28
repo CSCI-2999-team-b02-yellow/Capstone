@@ -70,6 +70,7 @@ session_start();
 	  <th scope="col">SKU</th>
       <th scope="col">Description</th>
       <th scope="col">Price</th>
+	  <th scope="col"> </th>
     </tr>
   </thead>
   <tbody>
@@ -97,6 +98,9 @@ session_start();
 		  <td><?php echo $sku; ?></td>
 		  <td><?php echo $discription; ?></td>
 		  <td><?php echo '$'.$price; ?></td>
+		  <td>
+			<button type="button" class="btn btn-dark">+ Add to Cart</button>
+		  </td>
 		</tr>
     <?php
 	}?>
