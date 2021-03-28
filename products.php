@@ -29,8 +29,6 @@ function genCookieID() {
     return bin2hex(random_bytes(50));
 }
 
-
-
 ?>
 	
 <!DOCTYPE html>
@@ -94,6 +92,7 @@ function genCookieID() {
 	  <th scope="col">SKU</th>
       <th scope="col">Description</th>
       <th scope="col">Price</th>
+	  <th scope="col"> </th>
     </tr>
   </thead>
   <tbody>
@@ -121,6 +120,9 @@ function genCookieID() {
 		  <td><?php echo $sku; ?></td>
 		  <td><?php echo $discription; ?></td>
 		  <td><?php echo '$'.$price; ?></td>
+		  <td>
+			<button type="button" class="btn btn-dark">+ Add to Cart</button>
+		  </td>
 		</tr>
     <?php
 	}?>

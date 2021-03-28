@@ -123,7 +123,7 @@ if(isset($_POST['submit'])) {
                     // TODO: this is our login, add cookie logic here:
                     $localID = getLocalID();
                     $databaseID = getDatabaseID($conn, $username);
-                    reconcileID($localID, $databaseID);
+                    reconcileID($conn, $username, $localID, $databaseID);
 
                     // divide where user goes based on access level:
                     if ($accesslevel > 1) {
@@ -239,7 +239,7 @@ function updateDatabaseID($conn, $username, $localID, $databaseID) {
     }
 }
 
-function reconcileID($localID, $databaseID) {
+function reconcileID($conn, $username, $localID, $databaseID) {
     // TODO: (Optional rare case). If the cookieID exists in the database, but not locally, update/create cookie with cookieID from database.
     if ($localID === null && $databaseID !== null) {
         $localID = $databaseID;
