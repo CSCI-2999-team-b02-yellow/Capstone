@@ -159,6 +159,7 @@ if(isset($_POST['submit'])){
   <div class="links">
   <a class="active" href="index.html">Home</a>
   <a href="products.html">Products</a>
+  <a href="printCart.php">Shopping Cart</a>
   <a href="addinventory.php">Add Inventory</a>
   <a href="updateinventory.php">Update Products</a>
   <a href="contactus.html">Contact Us</a>

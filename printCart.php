@@ -115,8 +115,39 @@
 
    
    </style>
+   
   </head>
   <body>
+  <div class="header">
+    <div class="links">
+        <a href="index.php">Home</a>
+        <a href="products.php">Products</a>
+		<a href="printCart.php">Shopping Cart</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="addinventory.php">Add Inventory</a>';
+            }
+        }?>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="updateinventory.php">Update Products</a>';
+            }
+        }?>
+        <a href="contactus.php">Contact Us</a>
+        <a href="aboutus.php">FAQ</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="employees.php">Employees</a>';
+            }
+        }?>
+        <?php if(!isset($_SESSION["username"])) {
+            echo '<a href="login.php">Login</a>';
+        }?>
+        <?php if(isset($_SESSION["username"])) {
+            echo '<a href="logout.php">Logout</a>';
+        }?>
+    </div>
+</div>
 <div class="invoice-box">
   <table cellpadding="0" cellspacing="0">
     <tr class="top">
