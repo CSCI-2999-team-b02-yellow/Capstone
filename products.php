@@ -2,10 +2,93 @@
 
 session_start();
 
-	$serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
-	// $connection info to the database
-	$connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
-	$conn = sqlsrv_connect( $serverName, $connectionInfo);
+$serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
+// $connection info to the database
+$connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
+$conn = sqlsrv_connect( $serverName, $connectionInfo);
+
+// What to do when the add to cart button is clicked:
+if(isset($_POST["addToCart"])) {
+    echo '<script>console.log("addToCart has been pressed")</script>';
+    $itemID = $_POST["itemID"];
+    echo '<script>console.log("itemID is: '.$itemID.'")</script>';
+    $quantity = $_POST["quantity"];
+    echo '<script>console.log("quantity is: '.$quantity.'")</script>';
+
+
+    // TODO: If someone adds a product to a cart, check if a cookie exists with cookieID on the client computer.
+    // Check if a cookie exists, which will also create one if we don't have one:
+    $cookieID = checkCookie($conn);
+    echo '<script>console.log("CookieID is: '.$cookieID.'")</script>';
+    echo '<script>console.log("Started running addItem()")</script>';
+    addItem($conn, $cookieID, $itemID, $quantity);
+    echo '<script>console.log("Finished running addItem()")</script>';
+}
+
+function addItem($conn, $cookieID, $itemID, $quantity) {
+
+    try {
+        // get the orderID based on the cookieID from the cookie database table:
+        $sql = "SELECT orderID FROM yellowteam.dbo.cookie WHERE cookieID = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($cookieID), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+        $orderID = null;
+        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            $orderID = $row['orderID'];
+        }
+        echo '<script>console.log("orderID is: '.$orderID.'")</script>';
+
+        // TODO: Add product to orders table using itemID, orderID (pulled from cookie table), and quantity:
+        // add the item based on the order ID into the database orders table:
+        $sql = "INSERT INTO yellowteam.dbo.orders (orderID, itemID, quantity) VALUES (?, ?, ?)";
+        $stmt = sqlsrv_prepare($conn, $sql, array($orderID, $itemID, $quantity), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+        echo '<script>console.log("Added item ID '.$itemID.' to orderID '.$orderID.' with quantity '.$quantity.'")</script>';
+    } catch (exception $e) {
+        // Need to look up and introduce error handling logic here:
+    } finally {
+        //sqlsrv_free_stmt($stmt);
+        //sqlsrv_close($conn);
+    }
+}
+
+function checkCookie($conn) {
+    $cookieID = null;
+    if(!isset($_COOKIE['cookieID'])) {
+        // TODO: If a cookie does not exist create a cookieID locally.
+        $cookieID = genCookieID();
+        setcookie('cookieID', $cookieID, time() + (86400 * 30), "/"); // 30-day expiration: 86400 is the seconds in a day
+        echo '<script>console.log("New Cookie ID created: '.$cookieID.'")</script>';
+
+        // if user is logged in, we get their username:
+        $username = null;
+        if(isset($_SESSION['username'])) {
+            $username = $_SESSION['username'];
+        }
+
+        // TODO: This may have some merging issues later, would probably have to check if a user has a cookie tied to their username already?
+        // TODO: Guessing it would get solved on log off and log back in. But that's a crappy workaround.
+        // TODO: Store cookieID & orderID(auto-generated PK) in the database “cookie” table. Add username if user is logged in.
+        try {
+            $sql = "INSERT INTO yellowteam.dbo.cookie (cookieID, username) VALUES (?, ?)";
+            $stmt = sqlsrv_prepare($conn, $sql, array($cookieID, $username), array( "Scrollable" => "buffered"));
+            sqlsrv_execute($stmt);
+        } catch (exception $e) {
+            // Need to look up and introduce error handling logic here:
+        } finally {
+            //sqlsrv_free_stmt($stmt);
+            //sqlsrv_close($conn);
+        }
+    } else {
+        $cookieID = $_COOKIE['cookieID']; // you can't get cookie data right after creating, only when you go to another page!!
+    }
+    return $cookieID;
+}
+
+// This function generates a pseudo-random 50-character alphanumeric string, our db stores 50 varchar cookieIDs
+function genCookieID() {
+    return bin2hex(random_bytes(25)); // Note: in hex a byte is 2 characters, so 25 hexes are actually 50 characters here
+}
 
 ?>
 	
@@ -71,15 +154,15 @@ session_start();
 	  <th scope="col">SKU</th>
       <th scope="col">Description</th>
       <th scope="col">Price</th>
-	  <th scope="col"> </th>
+	  <th scope="col">Quantity</th>
     </tr>
   </thead>
   <tbody>
 	<?php
 
-	$sql = "SELECT * FROM inventory";
+	$sqlTwo = "SELECT * FROM inventory";
 
-	$query = sqlsrv_query( $conn, $sql);
+	$query = sqlsrv_query($conn, $sqlTwo);
 	if( $query === false ) {
 		 die( print_r( sqlsrv_errors(), true));
 	}
@@ -87,9 +170,10 @@ session_start();
 	$number=0;
 	while( $products = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC) ) {  
 		$number=$number+1;
+		$itemID=$products["itemID"];
 		$product=$products["productName"];
 		$sku=$products["productSKU"];
-		$discription=$products["itemDescription"];
+		$description=$products["itemDescription"];
 		$price=round($products["price"],2);
 	
 		?>
@@ -97,11 +181,13 @@ session_start();
 		  <th scope="row"><?php echo $number; ?></th>
 		  <td><?php echo $product; ?></td>
 		  <td><?php echo $sku; ?></td>
-		  <td><?php echo $discription; ?></td>
+		  <td><?php echo $description; ?></td>
 		  <td><?php echo '$'.$price; ?></td>
-		  <td>
-			<button type="button" class="btn btn-dark">+ Add to Cart</button>
-		  </td>
+		  <td><form action="" method="POST">
+            <input type="text" name="quantity" value="1" class="form-control" />
+            <input type="hidden" name="itemID" value="<?php echo $itemID; ?>" />
+			<button type="submit" name="addToCart" class="btn btn-dark">+ Add to Cart</button>
+          </form></td>
 		</tr>
     <?php
 	}?>

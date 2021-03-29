@@ -113,27 +113,24 @@ if(isset($_POST['submit'])) {
              * can be used to convert plaintext to hash, so all registered users make hashed passwords.
              */
 
-            // checks form password matches database password, and that user access is at least lvl 2
-            if($password === $hashed_password && $accesslevel > 1) {
+            // checks form password matches database password
+            if($password === $hashed_password) {
                 $banTime = failCheck($conn, $username);
                 if ($banTime === null) {
                     // Store data in session variables, username basically means user is logged in
                     $_SESSION["username"] = $username;
                     $_SESSION["accesslevel"] = $accesslevel;
-                    welcomeRedirect($fullname, 'employees.php');
-                } else {
-                    $minutes = $banTime / 60;
-                    $seconds = $banTime % 60;
-                    echo "<script>alert('Allowed failed logins exceeded. Please wait $minutes minutes and $seconds seconds before trying again.')</script>";
-                }
-            } elseif ($password === $hashed_password && $accesslevel === 1) {
-                $banTime = failCheck($conn, $username);
-                if ($banTime === null) {
-                    // Store data in session variables, username being set is same as loggedin = true, removed redundancy
-                    $_SESSION["username"] = $username;
-                    $_SESSION["accesslevel"] = $accesslevel;
-                    // customers.php is a placeholder, we can rename the URL once a page is established
-                    welcomeRedirect($fullname, 'index.php');
+                    // TODO: this is our login, add cookie logic here:
+                    $localID = getLocalID();
+                    $databaseID = getDatabaseID($conn, $username);
+                    reconcileID($conn, $username, $localID, $databaseID);
+
+                    // divide where user goes based on access level:
+                    if ($accesslevel > 1) {
+                        welcomeRedirect($fullname, 'employees.php');
+                    } else {
+                        welcomeRedirect($fullname, 'index.php');
+                    }
                 } else {
                     $minutes = $banTime / 60;
                     $seconds = $banTime % 60;
@@ -169,7 +166,114 @@ if(isset($_POST['submit'])) {
         }
     }
     // this ends checkpoint 3 logic
+}
 
+function getLocalID() {
+    // TODO: When I log in successfully, check if a cookie exists locally with a cookieID.
+    $localID = null;
+    if(isset($_COOKIE['cookieID'])) {
+        $localID = $_COOKIE['cookieID'];
+    }
+    return $localID;
+}
+
+function getDatabaseID($conn, $username) {
+    // TODO: When I log in successfully, check if a cookieID exists for the username in the database.
+    $databaseID = null;
+    try {
+        $sql = "SELECT cookieID FROM yellowteam.dbo.cookie WHERE username = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($username), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            $databaseID = $row['cookieID'];
+        }
+        echo '<script>console.log("Database CookieID is: '.$databaseID.'")</script>';
+    } catch (exception $e) {
+        // Need to look up and introduce error handling logic here:
+    } finally {
+        //sqlsrv_free_stmt($stmt);
+        //sqlsrv_close($conn);
+    }
+    return $databaseID;
+}
+
+
+//TODO: Given database cookieID, we make an update statement to replace all instances of local cookieID with database cookieID in the "orders" table.
+function updateDatabaseID($conn, $username, $localID, $databaseID) {
+    try {
+        // first we get the orderID associated with the username:
+        $databaseOrderID = null;
+        $sql = "SELECT orderID FROM yellowteam.dbo.cookie WHERE username = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($username), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            $databaseOrderID = $row['orderID'];
+        }
+
+        // second we get the orderID associated with the local cookie:
+        $localOrderID = null;
+        $sql = "SELECT orderID FROM yellowteam.dbo.cookie WHERE cookieID = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($localID), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            $localOrderID = $row['orderID'];
+        }
+
+        // third we update the cookieID and orderID in the orders table to that of the ones associated with the username
+        $sql = "UPDATE yellowteam.dbo.orders SET orderID = ?, cookieID = ? WHERE orderID = ?, cookiedID = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($databaseOrderID, $databaseID, $localOrderID, $localID), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+
+        // we can then remove the row containing the local cookieID with no username attached once we have the orderID:
+        $sql = "DELETE FROM yellowteam.dbo.cookie WHERE cookieID = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($localID), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+
+        // TODO: Error Handling: If the sql statement failed (for example, syntax error etc.), we do nothing. Don't wipe the cart by accident!
+        // once finished we can change local cookie ID to the database cookie ID!
+
+    } catch (exception $e) {
+        // Need to look up and introduce error handling logic here:
+    } finally {
+        //sqlsrv_free_stmt($stmt);
+        //sqlsrv_close($conn);
+    }
+}
+
+function reconcileID($conn, $username, $localID, $databaseID) {
+    // TODO: (Optional rare case). If the cookieID exists in the database, but not locally, update/create cookie with cookieID from database.
+    if ($localID === null && $databaseID !== null) {
+        $localID = $databaseID;
+        setcookie('cookieID', $localID, time() + (86400 * 30), "/"); // 30-day expiration: 86400 is the seconds in a day
+    }
+
+    echo '<script>console.log("Preparing to associate local cookie with username in the database")</script>';
+    // TODO: If a cookie exists locally, but not in the database, update it in the database
+    if ($localID !== null && $databaseID === null) {
+        echo '<script>console.log("Local CookieID is: '.$localID.'")</script>';
+        echo '<script>console.log("username is: '.$username.'")</script>';
+        try {
+            $sql = "UPDATE yellowteam.dbo.cookie SET username = ? WHERE cookieID = ?";
+            $stmt = sqlsrv_prepare($conn, $sql, array($username, $localID));
+            sqlsrv_execute($stmt);
+        } catch (exception $e) {
+            // Need to look up and introduce error handling logic here:
+        } finally {
+            //sqlsrv_free_stmt($stmt);
+            //sqlsrv_close($conn);
+        }
+    }
+
+    // TODO: If the cookieID in the cookie (local) does not match the database (server), handle the conflict:
+    // If neither local nor database IDs are null, and they are not the same, update local ID with database ID:
+    if ($localID !== null && $databaseID !== null && $localID !== $databaseID) {
+        updateDatabaseID($conn, $username, $localID, $databaseID);
+    }
+}
+
+// This function generates a pseudo-random 50-character alphanumeric string, our db stores 50 varchar cookieIDs
+function genCookieID() {
+    return bin2hex(random_bytes(25)); // Note: in hex a byte is 2 characters, so 25 hexes are actually 50 characters here
 }
 
 function welcomeRedirect($fullname, $url) {
