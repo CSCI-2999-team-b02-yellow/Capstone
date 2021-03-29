@@ -128,6 +128,7 @@
             </td>
 
             <td>
+
               Invoice #: 123<br> Created: March 30, 2021<br> 
             </td>
           </tr>
@@ -146,6 +147,9 @@
 
             <td>
               John Doe<br> john@example.com<br>
+
+               Print Cart<br> Created: <?php echo date("m/d/Y"); ?> <br> 
+
             </td>
           </tr>
         </table>

@@ -111,6 +111,7 @@ if(isset($_POST['addInv'])){
     <div class="links">
         <a href="index.php">Home</a>
         <a href="products.php">Products</a>
+		<a href="printCart.php">Shopping Cart</a>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
                 echo '<a href="addinventory.php">Add Inventory</a>';

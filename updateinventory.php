@@ -7,7 +7,7 @@ session_start();
 	$connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
 	$conn = sqlsrv_connect( $serverName, $connectionInfo);
 	
- // if condition when the Submit butoon is pushed.
+ // if statement when the Submit button is pushed.
 
 if(!isset($_SESSION["username"])){
     header("location: login.php");
@@ -27,37 +27,38 @@ if(isset($_POST['submit'])){
 	}
 	
 	// Condition to check if there is no data given.
-	if ($_POST['product'] == "" or $_POST['update']=="" or $_POST['newUpdate']==""){
+	if ($_POST['price']=="" and $_POST['sku']=="" and $_POST['description']==""){
 		
 		// Function call 
 		function_alert("Missing Information. Please fulfill everything.");
 	
 	// Other conditions to update the database.	
 	}else{
-		$selected1 = implode("', '", $_POST['product']);
-		$selected2 = $_POST['update'];
+		$selected1 = implode("', '", $_POST['product']); // use of implode for a list of words
+		$price = $_POST['price'];
+		$sku = $_POST['sku'];
+		$description = $_POST['description'];
 		
 		// Check wich part the user want to change, and use the SQL query to update it in the database.
 		
-		if($selected2 == "description"){
-			
-			$selected3 = $_POST['newUpdate'];
-			
-			sqlsrv_query( $conn, "UPDATE inventory SET itemDescription = '" .$selected3. "' WHERE productSKU in ('" .$selected1. "')");
+		if(!$description== ""){
+					
+			sqlsrv_query( $conn, "UPDATE inventory SET itemDescription = '" .$description. "' WHERE productSKU in ('" .$selected1. "')");
 								
-		}elseif($selected2 == "price"){
+		}
 			
-
-			$selected3 = (float)$_POST['newUpdate'];
-	
-			sqlsrv_query( $conn, "UPDATE inventory SET price = '" .$selected3. "' WHERE productSKU in ('" .$selected1. "')");
-						
-		}elseif($selected2 == "sku"){
+		if(!$price == ""){
 			
-			$selected3 = $_POST['newUpdate'];
-			sqlsrv_query( $conn, "UPDATE inventory SET productSKU = '" .$selected3. "' WHERE productSKU in ('" .$selected1. "')");
+			sqlsrv_query( $conn, "UPDATE inventory SET price = '" .$price. "' WHERE productSKU in ('" .$selected1. "')");
 						
-		}else{
+		}
+		
+		if(!$sku == ""){
+			
+			sqlsrv_query( $conn, "UPDATE inventory SET productSKU = '" .$sku. "' WHERE productSKU in ('" .$selected1. "')");
+						
+		}
+		else{
 			
 			$selected3 = "Please select one.";
 			
@@ -141,19 +142,38 @@ if(isset($_POST['submit'])){
                 ?>
                 <li><a>
                         <input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
-                        <label for=""> <?php echo $product." ".$products["productSKU"]." ".$products["itemDescription"]."  $".round($products["price"],2);?> </label>
+                        <label for=""> <?php echo $product." ".$products["productSKU"]."  $".round($products["price"],2);?> </label>
                     </a></li>
                 <?php
             }?>
             <br>
-            <select name="update">
-                <option value="">Choose what to change from the product</option>
-                <option value="sku">Product SKU</option>
-                <option value="price">Price</option>
-                <option value="description">Description</option>
-            </select>
-            <br><br>
-            <input type='text' name='newUpdate' id='newUpdate' placeholder="The New Update">
+				<details open>
+				  <summary>
+					Price
+					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
+					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
+				  </summary>
+					<input type='text' name='price' id='price' placeholder="The New Update">
+				</details>
+				<br>
+				<details>
+				  <summary>
+					Product SKU
+					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
+					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
+				  </summary>
+				    <input type='text' name='sku' id='sku' placeholder="The New Update">
+				</details>
+				<br>
+				<details>
+				  <summary>
+					Description
+					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
+					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
+				  </summary>
+				    <input type='text' name='description' id='description' placeholder="The New Update">
+				</details>
+				
             <br><br>
             <button name="submit" class="btn btn-dark">Update</button>
     </form>
