@@ -187,11 +187,12 @@ function getDatabaseID($conn, $username) {
         while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
             $databaseID = $row['cookieID'];
         }
+        echo '<script>console.log("Database CookieID is: '.$databaseID.'")</script>';
     } catch (exception $e) {
         // Need to look up and introduce error handling logic here:
     } finally {
-        sqlsrv_free_stmt($stmt);
-        sqlsrv_close($conn);
+        //sqlsrv_free_stmt($stmt);
+        //sqlsrv_close($conn);
     }
     return $databaseID;
 }
@@ -234,8 +235,8 @@ function updateDatabaseID($conn, $username, $localID, $databaseID) {
     } catch (exception $e) {
         // Need to look up and introduce error handling logic here:
     } finally {
-        sqlsrv_free_stmt($stmt);
-        sqlsrv_close($conn);
+        //sqlsrv_free_stmt($stmt);
+        //sqlsrv_close($conn);
     }
 }
 
@@ -244,6 +245,23 @@ function reconcileID($conn, $username, $localID, $databaseID) {
     if ($localID === null && $databaseID !== null) {
         $localID = $databaseID;
         setcookie('cookieID', $localID, time() + (86400 * 30), "/"); // 30-day expiration: 86400 is the seconds in a day
+    }
+
+    echo '<script>console.log("Preparing to associate local cookie with username in the database")</script>';
+    // TODO: If a cookie exists locally, but not in the database, update it in the database
+    if ($localID !== null && $databaseID === null) {
+        echo '<script>console.log("Local CookieID is: '.$localID.'")</script>';
+        echo '<script>console.log("username is: '.$username.'")</script>';
+        try {
+            $sql = "UPDATE yellowteam.dbo.cookie SET username = ? WHERE cookieID = ?";
+            $stmt = sqlsrv_prepare($conn, $sql, array($username, $localID));
+            sqlsrv_execute($stmt);
+        } catch (exception $e) {
+            // Need to look up and introduce error handling logic here:
+        } finally {
+            //sqlsrv_free_stmt($stmt);
+            //sqlsrv_close($conn);
+        }
     }
 
     // TODO: If the cookieID in the cookie (local) does not match the database (server), handle the conflict:
@@ -255,7 +273,7 @@ function reconcileID($conn, $username, $localID, $databaseID) {
 
 // This function generates a pseudo-random 50-character alphanumeric string, our db stores 50 varchar cookieIDs
 function genCookieID() {
-    return bin2hex(random_bytes(50));
+    return bin2hex(random_bytes(25)); // Note: in hex a byte is 2 characters, so 25 hexes are actually 50 characters here
 }
 
 function welcomeRedirect($fullname, $url) {
