@@ -2,25 +2,73 @@
 
 session_start();
 
-	$serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
-	// $connection info to the database
-	$connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
-	$conn = sqlsrv_connect( $serverName, $connectionInfo);
+$serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
+// $connection info to the database
+$connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
+$conn = sqlsrv_connect( $serverName, $connectionInfo);
 
-function checkCookie() {
-    // TODO: Store cookieID & orderID in the database “cookie” table.
-    // TODO: Add product to orders table using itemID (pulled from inventory table), orderID (pulled from cookie), and quantity (pulled from front end user input).
-    // TODO: To meet story requirements we have to be able to add more than 1 of the same item from this page
-    // TODO: If cookieID exists (locally), add product to orders table using itemID (pulled from inventory table), orderID (pulled from cookie), and quantity (pulled from front end user input).
+// What to do when the add to cart button is clicked:
+if(isset($_POST['addToCart'])) {
     // TODO: If someone adds a product to a cart, check if a cookie exists with cookieID on the client computer.
-    // need to reverse logic, cookie is going to be set most of the time, so why check for a condition that's nearly always true, check if it's not true first
-    if(isset($_COOKIE[$cookie_name])) {
-        $localID = $_COOKIE[$cookie_value]; // does this assume that our site's cookie is where the value is being looked for? or does it need cookie name?
-    } else {
-        // TODO: Store cookieID in the cookie (locally).
-        // TODO: If a cookie does not exist create a cookieID and an orderID.
+    // Check if a cookie exists, which will also create one if we don't have one:
+    checkCookie();
+    $cookieID = $_COOKIE['cookieID'];
+    addItem($conn, $cookieID);
+}
+
+function addItem($conn, $cookieID) {
+
+    try {
+        // get the orderID based on the cookieID from the database:
+        $sql = "SELECT orderID FROM yellowteam.dbo.orders WHERE cookieID = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($cookieID), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            $orderID = $row['orderID'];
+        }
+
+        // TODO: Add product to orders table using itemID, orderID (pulled from cookie table), and quantity:
+        $itemID = null; // TODO: figure out how to pull itemID from the HTML
+        $quantity = null; // TODO: figure out how to pull item quantity from the HTML
+        // add the item based on the order ID into the database orders table:
+        $sql = "INSERT INTO yellowteam.dbo.orders (orderID, itemID, quantity) VALUES (?, ?, ?)";
+        $stmt = sqlsrv_prepare($conn, $sql, array($orderID, $itemID, $quantity), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+    } catch (exception $e) {
+        // Need to look up and introduce error handling logic here:
+    } finally {
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+    }
+}
+
+function checkCookie($conn) {
+    if(!isset($_COOKIE['cookieID'])) {
+        // TODO: If a cookie does not exist create a cookieID locally.
+        $cookieID = genCookieID();
         // Basically call cookieID generator, store it locally & store it again in database, orderID is PK and auto generated
-        setcookie($cookie_name, genCookieID(), time() + (86400 * 30), "/"); // 30-day expiration: 86400 is the seconds in a day
+        setcookie('cookieID', $cookieID, time() + (86400 * 30), "/"); // 30-day expiration: 86400 is the seconds in a day
+
+        // if user is logged in, we get their username:
+        $username = null;
+        if(isset($_SESSION['username'])) {
+            $username = $_SESSION['username'];
+        }
+
+        // TODO: This may have some merging issues later, would probably have to check if a user has a cookie tied to their username already?
+        // TODO: Guessing it would get solved on log off and log back in. But that's a crappy workaround.
+        // TODO: Store cookieID & orderID(auto-generated PK) in the database “cookie” table. Add username if user is logged in.
+        try {
+            $sql = "INSERT INTO yellowteam.dbo.cookie (cookieID, username) VALUES (?, ?)";
+            $stmt = sqlsrv_prepare($conn, $sql, array($cookieID, $username), array( "Scrollable" => "buffered"));
+            sqlsrv_execute($stmt);
+        } catch (exception $e) {
+            // Need to look up and introduce error handling logic here:
+        } finally {
+            sqlsrv_free_stmt($stmt);
+            sqlsrv_close($conn);
+        }
+
     }
 }
 
@@ -120,8 +168,9 @@ function genCookieID() {
 		  <td><?php echo $sku; ?></td>
 		  <td><?php echo $discription; ?></td>
 		  <td><?php echo '$'.$price; ?></td>
+          <td><input type="text" name="quantity" value="1" class="form-control" /></td>
 		  <td>
-			<button type="button" class="btn btn-dark">+ Add to Cart</button>
+			<button type="button" name="addToCart" class="btn btn-dark">+ Add to Cart</button>
 		  </td>
 		</tr>
     <?php

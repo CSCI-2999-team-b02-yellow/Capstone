@@ -171,8 +171,8 @@ if(isset($_POST['submit'])) {
 function getLocalID() {
     // TODO: When I log in successfully, check if a cookie exists locally with a cookieID.
     $localID = null;
-    if(isset($_COOKIE[$cookie_name])) {
-        $localID = $_COOKIE[$cookie_value];
+    if(isset($_COOKIE['cookieID'])) {
+        $localID = $_COOKIE['cookieID'];
     }
     return $localID;
 }
@@ -243,7 +243,7 @@ function reconcileID($conn, $username, $localID, $databaseID) {
     // TODO: (Optional rare case). If the cookieID exists in the database, but not locally, update/create cookie with cookieID from database.
     if ($localID === null && $databaseID !== null) {
         $localID = $databaseID;
-        setcookie($cookie_name, $localID, time() + (86400 * 30), "/"); // 30-day expiration: 86400 is the seconds in a day
+        setcookie('cookieID', $localID, time() + (86400 * 30), "/"); // 30-day expiration: 86400 is the seconds in a day
     }
 
     // TODO: If the cookieID in the cookie (local) does not match the database (server), handle the conflict:
