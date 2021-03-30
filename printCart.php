@@ -1,5 +1,6 @@
 <?php
 
+
 ?>
 
 <!DOCTYPE html>
@@ -128,28 +129,7 @@
             </td>
 
             <td>
-
-              Invoice #: 123<br> Created: March 30, 2021<br> 
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-
-    <tr class="information">
-      <td colspan="4">
-        <table>
-          <tr>
-            <td>
-              1234 Easy Street<br> Hardwareville FL 9001<br> Phone number: 867-530-9999
-
-            </td>
-
-            <td>
-              John Doe<br> john@example.com<br>
-
                Print Cart<br> Created: <?php echo date("m/d/Y"); ?> <br> 
-
             </td>
           </tr>
         </table>
