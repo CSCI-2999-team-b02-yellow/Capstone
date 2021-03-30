@@ -18,8 +18,7 @@ function getOrderID($conn, $cookieID) {
             $orderID = $row['orderID'];
         }
     } catch (exception $e) {
-        // Probably adjust to have this log to console?
-        echo $e->getmessage();
+        // Need to look up and introduce error handling logic here:
     } finally {
         sqlsrv_free_stmt($stmt);
     }
@@ -46,6 +45,11 @@ function getOrderID($conn, $cookieID) {
     <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
     <link rel="manifest" href="img/site.webmanifest">
+	<style>
+	div.c {
+		text-align: right;
+	} 
+	</style>
 </head>
 
 <body>
@@ -81,6 +85,11 @@ function getOrderID($conn, $cookieID) {
 </div>
 
 <main class="container p-5">
+
+<div class="c">
+<a href="printCart.php" target="_blank">Print your Cart</a> 
+</div>
+
     <div><h3><b> Products <b></h3></div><br>
     <table class="table">
         <thead class="thead-dark">
