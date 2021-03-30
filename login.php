@@ -121,9 +121,9 @@ if(isset($_POST['submit'])) {
                     $_SESSION["username"] = $username;
                     $_SESSION["accesslevel"] = $accesslevel;
                     // TODO: this is our login, add cookie logic here:
-                    $localID = getLocalID();
-                    $databaseID = getDatabaseID($conn, $username);
-                    reconcileID($conn, $username, $localID, $databaseID);
+                    $localCookieID = getLocalCookieID();
+                    $databaseCookieID = getDatabaseID($conn, $username);
+                    reconcileID($conn, $username, $localCookieID, $databaseCookieID);
 
                     // divide where user goes based on access level:
                     if ($accesslevel > 1) {
@@ -168,37 +168,37 @@ if(isset($_POST['submit'])) {
     // this ends checkpoint 3 logic
 }
 
-function getLocalID() {
+function getLocalCookieID() {
     // TODO: When I log in successfully, check if a cookie exists locally with a cookieID.
-    $localID = null;
+    $localCookieID = null;
     if(isset($_COOKIE['cookieID'])) {
-        $localID = $_COOKIE['cookieID'];
+        $localCookieID = $_COOKIE['cookieID'];
     }
-    return $localID;
+    return $localCookieID;
 }
 
 function getDatabaseID($conn, $username) {
     // TODO: When I log in successfully, check if a cookieID exists for the username in the database.
-    $databaseID = null;
+    $databaseCookieID = null;
     try {
         $sql = "SELECT cookieID FROM yellowteam.dbo.cookie WHERE username = ?";
         $stmt = sqlsrv_prepare($conn, $sql, array($username), array( "Scrollable" => "buffered"));
         sqlsrv_execute($stmt);
         while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-            $databaseID = $row['cookieID'];
+            $databaseCookieID = $row['cookieID'];
         }
-        echo '<script>console.log("Database CookieID is: '.$databaseID.'")</script>';
+        echo '<script>console.log("Database CookieID is: '.$databaseCookieID.'")</script>';
     } catch (exception $e) {
         // Need to look up and introduce error handling logic here:
     } finally {
         sqlsrv_free_stmt($stmt);
     }
-    return $databaseID;
+    return $databaseCookieID;
 }
 
 
 //TODO: Given database cookieID, we make an update statement to replace all instances of local cookieID with database cookieID in the "orders" table.
-function updateDatabaseID($conn, $username, $localID, $databaseID) {
+function updateDatabaseID($conn, $username, $localCookieID, $databaseCookieID) {
     try {
         // first we get the orderID associated with the username:
         $databaseOrderID = null;
@@ -208,25 +208,28 @@ function updateDatabaseID($conn, $username, $localID, $databaseID) {
         while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
             $databaseOrderID = $row['orderID'];
         }
-
-        // second we get the orderID associated with the local cookie:
+        
+        // second we get the orderID associated with the local cookieID:
         $localOrderID = null;
         $sql = "SELECT orderID FROM yellowteam.dbo.cookie WHERE cookieID = ?";
-        $stmt = sqlsrv_prepare($conn, $sql, array($localID), array( "Scrollable" => "buffered"));
+        $stmt = sqlsrv_prepare($conn, $sql, array($localCookieID), array( "Scrollable" => "buffered"));
         sqlsrv_execute($stmt);
         while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
             $localOrderID = $row['orderID'];
         }
 
         // third we update the cookieID and orderID in the orders table to that of the ones associated with the username
-        $sql = "UPDATE yellowteam.dbo.orders SET orderID = ?, cookieID = ? WHERE orderID = ?, cookiedID = ?";
-        $stmt = sqlsrv_prepare($conn, $sql, array($databaseOrderID, $databaseID, $localOrderID, $localID), array( "Scrollable" => "buffered"));
+        $sql = "UPDATE yellowteam.dbo.orders SET orderID = ? WHERE orderID = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($databaseOrderID, $localOrderID), array( "Scrollable" => "buffered"));
         sqlsrv_execute($stmt);
 
         // we can then remove the row containing the local cookieID with no username attached once we have the orderID:
         $sql = "DELETE FROM yellowteam.dbo.cookie WHERE cookieID = ?";
-        $stmt = sqlsrv_prepare($conn, $sql, array($localID), array( "Scrollable" => "buffered"));
+        $stmt = sqlsrv_prepare($conn, $sql, array($localCookieID), array( "Scrollable" => "buffered"));
         sqlsrv_execute($stmt);
+
+        // TODO: after updating login merge, we need to set local cookie value to that of the database:
+        setcookie('cookieID', $databaseCookieID, time() + (86400 * 30), "/"); // 30-day expiration: 86400 is the seconds in a day
 
         // TODO: Error Handling: If the sql statement failed (for example, syntax error etc.), we do nothing. Don't wipe the cart by accident!
         // once finished we can change local cookie ID to the database cookie ID!
@@ -238,21 +241,21 @@ function updateDatabaseID($conn, $username, $localID, $databaseID) {
     }
 }
 
-function reconcileID($conn, $username, $localID, $databaseID) {
+function reconcileID($conn, $username, $localCookieID, $databaseCookieID) {
     // TODO: (Optional rare case). If the cookieID exists in the database, but not locally, update/create cookie with cookieID from database.
-    if ($localID === null && $databaseID !== null) {
-        $localID = $databaseID;
-        setcookie('cookieID', $localID, time() + (86400 * 30), "/"); // 30-day expiration: 86400 is the seconds in a day
+    if ($localCookieID === null && $databaseCookieID !== null) {
+        $localCookieID = $databaseCookieID;
+        setcookie('cookieID', $localCookieID, time() + (86400 * 30), "/"); // 30-day expiration: 86400 is the seconds in a day
     }
 
     echo '<script>console.log("Preparing to associate local cookie with username in the database")</script>';
     // TODO: If a cookie exists locally, but not in the database, update it in the database
-    if ($localID !== null && $databaseID === null) {
-        echo '<script>console.log("Local CookieID is: '.$localID.'")</script>';
+    if ($localCookieID !== null && $databaseCookieID === null) {
+        echo '<script>console.log("Local CookieID is: '.$localCookieID.'")</script>';
         echo '<script>console.log("username is: '.$username.'")</script>';
         try {
             $sql = "UPDATE yellowteam.dbo.cookie SET username = ? WHERE cookieID = ?";
-            $stmt = sqlsrv_prepare($conn, $sql, array($username, $localID));
+            $stmt = sqlsrv_prepare($conn, $sql, array($username, $localCookieID));
             sqlsrv_execute($stmt);
         } catch (exception $e) {
             // Need to look up and introduce error handling logic here:
@@ -263,8 +266,8 @@ function reconcileID($conn, $username, $localID, $databaseID) {
 
     // TODO: If the cookieID in the cookie (local) does not match the database (server), handle the conflict:
     // If neither local nor database IDs are null, and they are not the same, update local ID with database ID:
-    if ($localID !== null && $databaseID !== null && $localID !== $databaseID) {
-        updateDatabaseID($conn, $username, $localID, $databaseID);
+    if ($localCookieID !== null && $databaseCookieID !== null && $localCookieID !== $databaseCookieID) {
+        updateDatabaseID($conn, $username, $localCookieID, $databaseCookieID);
     }
 }
 
