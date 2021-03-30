@@ -191,8 +191,7 @@ function getDatabaseID($conn, $username) {
     } catch (exception $e) {
         // Need to look up and introduce error handling logic here:
     } finally {
-        //sqlsrv_free_stmt($stmt);
-        //sqlsrv_close($conn);
+        sqlsrv_free_stmt($stmt);
     }
     return $databaseID;
 }
@@ -235,8 +234,7 @@ function updateDatabaseID($conn, $username, $localID, $databaseID) {
     } catch (exception $e) {
         // Need to look up and introduce error handling logic here:
     } finally {
-        //sqlsrv_free_stmt($stmt);
-        //sqlsrv_close($conn);
+        sqlsrv_free_stmt($stmt);
     }
 }
 
@@ -259,8 +257,7 @@ function reconcileID($conn, $username, $localID, $databaseID) {
         } catch (exception $e) {
             // Need to look up and introduce error handling logic here:
         } finally {
-            //sqlsrv_free_stmt($stmt);
-            //sqlsrv_close($conn);
+            sqlsrv_free_stmt($stmt);
         }
     }
 
