@@ -18,7 +18,8 @@ function getOrderID($conn, $cookieID) {
             $orderID = $row['orderID'];
         }
     } catch (exception $e) {
-        // Need to look up and introduce error handling logic here:
+        // Probably adjust to have this log to console?
+        echo $e->getmessage();
     } finally {
         sqlsrv_free_stmt($stmt);
     }
@@ -93,8 +94,10 @@ function getOrderID($conn, $cookieID) {
         </thead>
         <tbody>
         <?php
-        $cookieID = isset($_COOKIE['cookieID']) ?: null;
+        $cookieID = isset($_COOKIE['cookieID']) ? $_COOKIE['cookieID'] : null;
         $orderID = isset($_COOKIE['cookieID']) ? getOrderID($conn, $cookieID) : null;
+        //$cookieID = $_COOKIE['cookieID'];
+        //$orderID = getOrderID($conn, $cookieID);
         if ($cookieID !== null && $orderID !== null) {
             try {
                 $sql = "SELECT yellowteam.dbo.inventory.productName, 
