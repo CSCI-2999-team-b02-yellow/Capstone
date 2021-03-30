@@ -21,7 +21,6 @@ function getOrderID($conn, $cookieID) {
         // Need to look up and introduce error handling logic here:
     } finally {
         sqlsrv_free_stmt($stmt);
-        //sqlsrv_close($conn);
     }
     return $orderID;
 }
@@ -94,22 +93,23 @@ function getOrderID($conn, $cookieID) {
         </thead>
         <tbody>
         <?php
-        $cookieID = $_COOKIE['cookieID'];
-        $orderID = getOrderID($conn, $cookieID);
-        if ($orderID !== null) {
-            $sql = "SELECT yellowteam.dbo.inventory.productName, 
-                    yellowteam.dbo.inventory.productSKU, 
-                    yellowteam.dbo.orders.quantity, 
-                    yellowteam.dbo.orders.quantity * yellowteam.dbo.inventory.price AS price 
-                    FROM yellowteam.dbo.orders 
-                    LEFT JOIN yellowteam.dbo.inventory 
-                    ON yellowteam.dbo.inventory.itemID=yellowteam.dbo.orders.itemID
-                    WHERE yellowteam.dbo.orders.orderID = ?";
-            $stmt = sqlsrv_prepare($conn, $sql, array($orderID), array( "Scrollable" => "buffered"));
-            sqlsrv_execute($stmt);
-            $total = 0;
-            $count = 1;
-            while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+        $cookieID = isset($_COOKIE['cookieID']) ?: null;
+        $orderID = isset($_COOKIE['cookieID']) ? getOrderID($conn, $cookieID) : null;
+        if ($cookieID !== null && $orderID !== null) {
+            try {
+                $sql = "SELECT yellowteam.dbo.inventory.productName, 
+                            yellowteam.dbo.inventory.productSKU, 
+                            yellowteam.dbo.orders.quantity, 
+                            yellowteam.dbo.orders.quantity * yellowteam.dbo.inventory.price AS price 
+                            FROM yellowteam.dbo.orders 
+                            LEFT JOIN yellowteam.dbo.inventory 
+                            ON yellowteam.dbo.inventory.itemID=yellowteam.dbo.orders.itemID
+                            WHERE yellowteam.dbo.orders.orderID = ?";
+                $stmt = sqlsrv_prepare($conn, $sql, array($orderID), array( "Scrollable" => "buffered"));
+                sqlsrv_execute($stmt);
+                $total = 0;
+                $count = 1;
+                while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
             ?>
             <tr>
                 <th scope="row"><?php echo $count; ?></th>
@@ -131,10 +131,20 @@ function getOrderID($conn, $cookieID) {
                 <th><?php echo '$'.round($total, 2); ?></th>
                 </thead>
             </tr>
-        <?php
-        }?>
+            <?php
+            } catch (Exception $e) {
+                // Probably adjust to have this log to console?
+                echo $e->getmessage();
+            } finally {
+                sqlsrv_free_stmt($stmt);
+            }
+        } else { ?>
         </tbody>
     </table>
+    <?php
+    echo ($cookieID !== null && $orderID === null) ? "<p>We couldn't find your cart.</p>" : "<p>Your cart is empty.</p>";
+    }
+    ?>
 </main>
 
 </body>
