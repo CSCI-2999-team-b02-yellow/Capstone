@@ -1,172 +1,163 @@
 <?php
 
+session_start();
+
+$serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
+// $connection info to the database
+$connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
+$conn = sqlsrv_connect( $serverName, $connectionInfo);
+
+function getOrderID($conn, $cookieID) {
+    try {
+        // get the orderID based on the cookieID from the cookie database table:
+        $sql = "SELECT orderID FROM yellowteam.dbo.cookie WHERE cookieID = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($cookieID), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+        $orderID = null;
+        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            $orderID = $row['orderID'];
+        }
+    } catch (exception $e) {
+        // Need to look up and introduce error handling logic here:
+    } finally {
+        sqlsrv_free_stmt($stmt);
+    }
+    return $orderID;
+}
 
 ?>
 
 <!DOCTYPE html>
-<html>
-  <head>
-   <style>
-   
-   .invoice-box {
-  max-width: 800px;
-  margin: auto;
-  padding: 30px;
-  border: 1px solid #eee;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
-  font-size: 16px;
-  line-height: 24px;
-  font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
-  color: #555;
-}
+<html lang="en">
 
-.invoice-box table {
-  width: 100%;
-  line-height: inherit;
-  text-align: left;
-}
+<head>
+    <meta charset="UTF-8">
+    <title>Products</title>
+    <meta name="author" content="Team Yellow">
+    <meta name="description" content="Nuts and bolts hardware company products page">
+    <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, products, inventory">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet"> <!-- also makes page responsive -->
+    <link href="css/main.css" rel="stylesheet">
+    <!-- Generated using favicon.io, provides logo icon on browser tab; need these 4 lines to function: -->
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="manifest" href="img/site.webmanifest">
+	<style>
+	div.c {
+		text-align: right;
+	} 
+	</style>
+</head>
 
-.invoice-box table td {
-  padding: 5px;
-  vertical-align: top;
-}
-
-.invoice-box table tr td:nth-child(n + 2) {
-  text-align: right;
-}
-
-.invoice-box table tr.top table td {
-  padding-bottom: 20px;
-}
-
-.invoice-box table tr.top table td.title {
-  font-size: 45px;
-  line-height: 45px;
-  color: #333;
-}
-
-.invoice-box table tr.information table td {
-  padding-bottom: 40px;
-}
-
-.invoice-box table tr.heading td {
-  background: #eee;
-  border-bottom: 1px solid #ddd;
-  font-weight: bold;
-}
-
-.invoice-box table tr.details td {
-  padding-bottom: 20px;
-}
-
-.invoice-box table tr.item td {
-  border-bottom: 1px solid #eee;
-}
-
-.invoice-box table tr.item.last td {
-  border-bottom: none;
-}
-
-.invoice-box table tr.item input {
-  padding-left: 5px;
-}
-
-.invoice-box table tr.item td:first-child input {
-  margin-left: -5px;
-  width: 100%;
-}
-
-.invoice-box table tr.total td:nth-child(2) {
-  border-top: 2px solid #eee;
-  font-weight: bold;
-}
-
-.invoice-box input[type="number"] {
-  width: 60px;
-}
-
-@media only screen and (max-width: 600px) {
-  .invoice-box table tr.top table td {
-    width: 100%;
-    display: block;
-    text-align: center;
-  }
-
-  .invoice-box table tr.information table td {
-    width: 100%;
-    display: block;
-    text-align: center;
-  }
-}
-
-/** RTL **/
-.rtl {
-  direction: rtl;
-  font-family: Tahoma, "Helvetica Neue", "Helvetica", Helvetica, Arial,
-    sans-serif;
-}
-
-.rtl table {
-  text-align: right;
-}
-
-.rtl table tr td:nth-child(2) {
-  text-align: left;
-}
-
-   
-   </style>
-  </head>
-  <body>
-<div class="invoice-box">
-  <table cellpadding="0" cellspacing="0">
-    <tr class="top">
-      <td colspan="4">
-        <table>
-          <tr>
-            <td class="title">
-				Nuts and Bolts
-            </td>
-
-            <td>
-               Print Cart<br> Created: <?php echo date("m/d/Y"); ?> <br> 
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-
-    <tr class="heading">
-      <td>Item</td>
-      <td>Unit Cost</td>
-      <td>Quantity</td>
-      <td>Price</td>
-    </tr>
-
-    <tr class="item" v-for="item in items">
-      <td>Screwdriver RR-123-RR</td>
-      <td>$33</td>
-      <td>2</td>
-      <td>$66</td>
-    </tr>
-	<tr class="item" v-for="item in items">
-      <td>Nails	SS-111-SS</td>
-      <td>$2.22</td>
-      <td>9</td>
-      <td>$19.98</td>
-    </tr>
-	<tr class="item" v-for="item in items">
-      <td>Hammer rr-98-th</td>
-      <td>$12.22</td>
-      <td>1</td>
-      <td>$12.22</td>
-    </tr>
-
-    <tr class="total">
-      <td colspan="3"></td>
-      <td>Total: $98.2</td>
-    </tr>
-  </table>
+<body>
+<div class="header">
+    <div class="links">
+        <a href="index.php">Home</a>
+        <a href="products.php">Products</a>
+        <a href="cart.php">Cart</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="addinventory.php">Add Inventory</a>';
+            }
+        }?>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="updateinventory.php">Update Products</a>';
+            }
+        }?>
+        <a href="contactus.php">Contact Us</a>
+        <a href="aboutus.php">FAQ</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="employees.php">Employees</a>';
+            }
+        }?>
+        <?php if(!isset($_SESSION["username"])) {
+            echo '<a href="login.php">Login</a>';
+        }?>
+        <?php if(isset($_SESSION["username"])) {
+            echo '<a href="logout.php">Logout</a>';
+        }?>
+    </div>
 </div>
-  </body>
+
+<main class="container p-5">
+
+<div class="c">
+<a href="printCart.php" target="_blank">Print your Cart</a> 
+</div>
+
+    <div><h3><b> Products <b></h3></div><br>
+    <table class="table">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Product Name</th>
+            <th scope="col">SKU</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php
+        $cookieID = isset($_COOKIE['cookieID']) ? $_COOKIE['cookieID'] : null;
+        $orderID = isset($_COOKIE['cookieID']) ? getOrderID($conn, $cookieID) : null;
+        //$cookieID = $_COOKIE['cookieID'];
+        //$orderID = getOrderID($conn, $cookieID);
+        if ($cookieID !== null && $orderID !== null) {
+            try {
+                $sql = "SELECT yellowteam.dbo.inventory.productName, 
+                            yellowteam.dbo.inventory.productSKU, 
+                            yellowteam.dbo.orders.quantity, 
+                            yellowteam.dbo.orders.quantity * yellowteam.dbo.inventory.price AS price 
+                            FROM yellowteam.dbo.orders 
+                            LEFT JOIN yellowteam.dbo.inventory 
+                            ON yellowteam.dbo.inventory.itemID=yellowteam.dbo.orders.itemID
+                            WHERE yellowteam.dbo.orders.orderID = ?";
+                $stmt = sqlsrv_prepare($conn, $sql, array($orderID), array( "Scrollable" => "buffered"));
+                sqlsrv_execute($stmt);
+                $total = 0;
+                $count = 1;
+                while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            ?>
+            <tr>
+                <th scope="row"><?php echo $count; ?></th>
+                <td><?php echo $row["productName"]; ?></td>
+                <td><?php echo $row["productSKU"]; ?></td>
+                <td><?php echo $row["quantity"]; ?></td>
+                <td><?php echo '$'.round($row["price"], 2); ?></td>
+            </tr>
+            <?php
+                $count++;
+                $total += $row["price"];
+            } ?>
+            <tr>
+                <thead class="thead-dark">
+                <th></th>
+                <th></th>
+                <th></th>
+                <th>Total:</th>
+                <th><?php echo '$'.round($total, 2); ?></th>
+                </thead>
+            </tr>
+            <?php
+            } catch (Exception $e) {
+                // Probably adjust to have this log to console?
+                echo $e->getmessage();
+            } finally {
+                sqlsrv_free_stmt($stmt);
+            }
+        } else { ?>
+        </tbody>
+    </table>
+    <?php
+    echo ($cookieID !== null && $orderID === null) ? "<p>We couldn't find your cart.</p>" : "<p>Your cart is empty.</p>";
+    }
+    ?>
+</main>
+
+</body>
 </html>
