@@ -107,6 +107,7 @@ function getOrderID($conn, $cookieID) {
                     WHERE yellowteam.dbo.orders.orderID = ?";
             $stmt = sqlsrv_prepare($conn, $sql, array($orderID), array( "Scrollable" => "buffered"));
             sqlsrv_execute($stmt);
+            $total = 0;
             $count = 1;
             while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
             ?>
@@ -119,7 +120,18 @@ function getOrderID($conn, $cookieID) {
             </tr>
             <?php
                 $count++;
-            }
+                $total += $row["price"];
+            } ?>
+            <tr>
+                <thead class="thead-dark">
+                <th></th>
+                <th></th>
+                <th></th>
+                <th>Total:</th>
+                <th><?php echo '$'.round($total, 2); ?></th>
+                </thead>
+            </tr>
+        <?php
         }?>
         </tbody>
     </table>
