@@ -69,3 +69,8 @@ body {
 .main h3{
   font-size: 30px;
 }
+
+/* used in updateinventory.php, can be recycled for getting rid of bullet points in lists: */
+.noBulletPoints {
+  list-style-type: none;
+}
