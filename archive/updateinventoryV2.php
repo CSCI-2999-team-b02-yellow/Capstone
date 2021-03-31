@@ -1,225 +1,225 @@
 <?php
 
+session_start();
+
 	$serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
 	// $connection info to the database.
 	$connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
 	$conn = sqlsrv_connect( $serverName, $connectionInfo);
 
-// Introducing separate search functionality, which would generate a table inside of the HTML
-if(isset($_POST['searchPress'])) {
-	$searchOption = $_POST['searchOptions'];
-	$sql = "SELECT * FROM yellowteam.dbo.inventory WHERE ".$searchOption." = ?";
-	$userInput = $_POST['searchInput'];
-	
-	// sanitizing $searchOption (vulnerable radiobutton value) which can only be 4 strict strings:
-	if ($searchOption == 'productName' ||
-		$searchOption == 'productSKU' ||
-		$searchOption == 'itemDescription' ||
-		$searchOption == 'price') 
-		{
-		// prepares our statement with connection info, all variables inside placeholders in sql:
-		$stmt = sqlsrv_prepare( $conn, $sql, array(&$userInput));
-		// checks the statement for errors, sqlsrv_prepare returns false if there's an error:
-		if( $stmt )  
-		{  
-			 echo '<script>console.log("Statement prepared.\n")</script>';  
-		}  
-		else  
-		{  
-			 echo '<script>console.log("Error in preparing statement.\n")</script>';  
-			 // $log = print_r( sqlsrv_errors(), true);  
-		} 
-		
-		// This actually uses the statement on the database, prints out errors if something happens:
-		if( sqlsrv_execute( $stmt))  
-		{  
-			  echo '<script>console.log("Statement executed.\n")</script>';  
-		}  
-		else  
-		{  
-			 echo '<script>console.log("Error in executing statement.\n")</script>';  
-			 // $log = print_r( sqlsrv_errors(), true);   
-		}  
-	
-	echo "<script>alert('breakpoint reached!')</script>";
-	// Starting table headers, which need to be outside the loop to not be repeated each iteration:
-	/*echo "<table><tr>
-				 <th>Product Name</th>
-				 <th>Product SKU</th>
-				 <th>Item Description></th>
-				 <th>Price</th>
-				 </tr>" */
-				 
-	// could make <tr name or id = SQL TABLE ID>, for easy grabbing for update functionality later?
-	// $("#searchResults").html(""); or alternatively $("#searchResults").empty; should clear search results
-	// now we need to load the results, generate a loop and have it echo off tables in the HTML here:
-	/* <script>
-	 * $(document).ready(function () {
-	 *    $("#searchResults").append();
-	 * });
-	 * </script>
-	 */
-	 
-	// TEST: NOT WORKING? to see jquery actually works: \ should escape ' characters
-	echo '<script>$(document).ready(function () {
-	$(document.body).append('."hello".')});</script>';
-	
-	// TEST VERSION: working -- prints to top of screen
-		while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-		echo 
-			 $row['productName'].", "
-			 .$row['productSKU'].", "
-			 .$row['itemDescription'].", "
-			 .$row['price'].'<br>';
-	}
-	
-	/* DISABLED: not working trying to figure out syntax
-	/* while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-		echo "<script>".
-			 '$(document).ready(function () {'.
-			 '$("#searchResults").append('.
-			 '"<p>"'.$row['productName'].", "
-			 .$row['productSKU'].", "
-			 .$row['itemDescription'].", "
-			 .$row['price'].'</p><br>"'.
-			 ');'.
-			 '});'.
-			 "</script>";
-	} */
-
-	// Closes the connection and also releases statement resources:
-	sqlsrv_free_stmt( $stmt);  
-	sqlsrv_close( $conn); 
-	}
-	// No need to use an else statement as default is do nothing
+if(!isset($_SESSION["username"])){
+    header("location: login.php");
+} else {
+    if ($_SESSION["accesslevel"] < 2) {
+        header("location: login.php");
+    }
 }
 
-// This will be restricted to updates to the database
-if(isset($_POST['submit'])){
-	
-	function function_alert($message) { 
-      
-		// Display the alert box  
-		echo "<script>alert('$message');</script>"; 
-	}
-	
-	// Condition to check if there is no data given.
-	if ($_POST['product'] == "" or $_POST['update']=="" or $_POST['newUpdate']==""){
-		
-		// Function call 
-		function_alert("Missing Information. Please fulfill everything.");
-	
-	// Other conditions to update the database.	
-	}else{
-		// Will need to introduce a way to grab 
-		$product = $_POST['product'];
-		$selected2 = $_POST['update'];
-		
-		// Check wich part the user want to change, and use the SQL query to update it in the database.
-		
-		// TODO: implement prepared statement, load value from $_POST[update] into it
-		//------------------------------------------- 
-		// itemID is (PK, int, not null)
-		// productName is (varchar(60), null)
-		// productSKU is (varchar(10), null)
-		// itemDescription is (varchar(5000), null)
-		// price is (smallmoney, null)
-		//-------------------------------------------
-		// placeholders (?) are used in SQL statements to prepare a statement & prevent SQL injection
-		// apparently you cannot bind columns to parameters in prepared statements, so we have to introduce a function to sanitize the radio buttons
-		$sql = "UPDATE yellowteam.dbo.inventory SET ? VALUES (?)";
-				
-	}
+// TODO: if no checkbox is selected and you for example have price 25.58, and click update, you are logged out
+// TODO: figure out what is breaking, also why you become logged out during this process....
+
+if(isset($_POST['filterSubmit'])) {
+    // implode is PHP-version of split, where it splits the strings from the selection array
+    // for example it would look something like this: 13 42 27 18
+    // those numbers represent the itemIDs split into the $selection string after using implode on the posted array
+    $selection = implode("', '", $_POST['selection']);
+
+    // the array introduced here allows us to bypass a tricky situation, which is namely that:
+    // prepared statements allow us to use placeholders for values, but not columns
+    // for example this is valid: "UPDATE inventory SET price WHERE itemID in ?" price is the name of the column
+    // however this is not valid: "UPDATE inventory SET ? WHERE itemID in ?" because the first placeholder refers to a column
+    // since our column names are derived from an associate array where they are they key they don't need sanitized (it's server side)
+    // if this were not the case, we could introduce sql injection into a prepared statement by a logical loophole!
+    $columnValues = array();
+    $columnValues['productSKU'] = $_POST['sku'];
+    $columnValues['itemDescription'] = $_POST['description'];
+    $columnValues['price'] = $_POST['price'];
+    $columnValues['stock'] = $_POST['stock'];
+
+    // https://stackoverflow.com/questions/33205087/sql-update-where-in-list-or-update-each-individually
+    // foreach ($arrayName as $key => $value) https://www.w3schools.com/php/php_arrays_associative.asp
+    // since we are using a modular approach we can now use a single update statement:
+    $count = 0;
+    foreach ($columnValues as $column => $userInput) {
+        if(!$userInput === "") {
+            /* If input isn't empty, run the update statement */
+            $sql = "UPDATE inventory SET ".$column." = ? WHERE itemID in ?";
+            $stmt = sqlsrv_prepare($conn, $sql, array($userInput, $selection));
+            sqlsrv_execute($stmt);
+            $count++;
+        }
+    }
+    // this is called a ternary operator, it helps us keep code smaller following this logic:
+    // condition to be tested ? do this if true : do this if false;
+    $count > 0 ? displayAlert("Updated!") : displayAlert("At least one update field must be filled out.");
 }
+
+// helper function to display a javascript alert messages:
+function displayAlert($message) {
+    echo "<script>alert('$message');</script>";
+}
+
 ?>
 
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
-
-	<!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
-	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
-
-	<link href="./css/styles.css" rel="stylesheet">
-
-	<!-- jQuery from folder ** something about this link is broken since CDN works: -->
-	<!-- <script src="js/jquery-3.5.1.min.js"></script> -->
-	<!-- jQuery from CDN: -->
-	<!-- script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
-
-	<title>Update Products</title>
-
+    <meta charset="UTF-8">
+    <title>Update Products</title>
+    <meta name="author" content="Team Yellow">
+    <meta name="description" content="Nuts and bolts hardware company update products page">
+    <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, update products, update inventory, update">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet"> <!-- also makes page responsive -->
+    <link href="css/main.css" rel="stylesheet">
+    <!-- Generated using favicon.io, provides logo icon on browser tab; need these 4 lines to function: -->
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="manifest" href="img/site.webmanifest">
 </head>
 
 <body>
-
 <div class="header">
-  <div class="links">
-  <a class="active" href="index.html">Home</a>
-  <a href="products.html">Products</a>
-  <a href="printCart.php">Shopping Cart</a>
-  <a href="addinventory.php">Add Inventory</a>
-  <a href="updateinventory.php">Update Products</a>
-  <a href="contactus.html">Contact Us</a>
-  <a href="aboutus.html">FAQ</a>
-  <a href="employees.php">Employees</a>
-  </div>
-  <div class ="logo">
-  <img src="inverselogo.png" alt="Italian Trulli" style="width:4.5%;height:4.5%;">
+    <div class="links">
+        <a href="index.php">Home</a>
+        <a href="products.php">Products</a>
+        <a href="cart.php">Cart</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="addinventory.php">Add Inventory</a>';
+            }
+        }?>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="updateinventory.php">Update Products</a>';
+            }
+        }?>
+        <a href="contactus.php">Contact Us</a>
+        <a href="aboutus.php">FAQ</a>
+        <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="employees.php">Employees</a>';
+            }
+        }?>
+        <?php if(!isset($_SESSION["username"])) {
+            echo '<a href="login.php">Login</a>';
+        }?>
+        <?php if(isset($_SESSION["username"])) {
+            echo '<a href="logout.php">Logout</a>';
+        }?>
+    </div>
 </div>
-</div>
-<br><br>
 
 <main class="container p-5">
-	<div><b> Update Products <b></div><br>
-	<form action="" method="POST">
-      <fieldset>
-       <p style="font-size:14px">Search Options:
-		   <input type = "radio"
-                 name = "searchOptions"
-                 value = "productName"
-				 id = "option4"
-                 checked = "checked" />
-          <label for = "option1">Product Name</label>
-          <input type = "radio"
-                 name = "searchOptions"
-                 value = "productSKU"
-				 id = "option1"
-                 checked = "checked" />
-          <label for = "option1">Product SKU (10 characters)</label>
-          <input type = "radio"
-                 name = "searchOptions"
-                 value = "itemDescription" 
-				 id = "option2" />
-          <label for = "option2">Item Description</label>
-          <input type = "radio"
-                 name = "searchOptions"
-                 id = "option3"
-                 value = "price" />
-          <label for = "option3">Price</label>
-		  <br><br>
-		  <input type="text" id="searchBox" name="searchInput" value=""><br>
-		  <br>
-		  <button name="searchPress" class="btn btn-dark">Search</button>
-        </p>       
-      </fieldset>     
-    </form>
-	<!-- Going to try to use jQuery to add dynamic result table inside this div later: -->
-	<div id="searchResults"></div>
-	<br></br>
+    <h3> Update Products </h3>
+    <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search/Filter for a product.." title="Type in a Product Name"> <br>
 
+    <h4>Please select the products to update</h4><br><br>
+    <form action="" method="POST">
+        <div>
+            <input type="text" id="searchBar" placeholder="Search for products" />
+            <button name="searchSubmit" style="margin-left:2%;" class="btn btn-dark">Search</button>
+        </div>
+        <ul id="rawList" class="noBulletPoints" onkeyup="filterResults()">
+            <?php
+            // TODO: put an ifisset check on searchSubmit button, introduce one also make a searchbox, one search is run generate this:
+            // die( print_r( sqlsrv_errors(), true)); --> this probably needs to go to an error log when re-implemented
+            // we want to first let the user search for results, and then let them narrow them down by filtering even more:
+            if(isset($_POST['searchSubmit'])) {
+                $searchInput = $_POST['searchBar'];
+                // I'm choosing to not allow search by the number left in stock, but we can introduce this if needed
+                $sql = "SELECT * 
+                        FROM yellowteam.dbo.inventory 
+                        WHERE ? 
+                        IN (productName, productSKU, itemDescription, price)
+                        ORDER BY productName";
+                $stmt = sqlsrv_prepare($conn, $sql, array($searchInput));
+                sqlsrv_execute($stmt);
+                while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+                    // name="selection[]" explanation: https://stackoverflow.com/questions/4688880/html-element-array-name-something-or-name-something
+                    // this stores the itemID values for checkmarked boxes in a list(array) called selection[]
+                    // this list of itemIDs is later used in an UPDATE SET WHERE IN statement, where a single field is updated for every itemID
+                ?>
+                <li><a>
+                        <input type="checkbox" name="selection[]" value="<?php echo $row["itemID"]; ?>" />
+                        <label for="">
+                            <?php echo
+                                $row["productName"]." "
+                                .$row["productSKU"]."  $"
+                                .round($row["price"],2)." "
+                                .$row["itemDescription"]." In Stock: "
+                                .$row["stock"];
+                            ?>
+                        </label>
+                </a></li>
+                <?php
+                }
+            }?>
+            <br>
+				<details open>
+				  <summary>
+					Price
+					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
+					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
+				  </summary>
+					<input type='text' name='price' id='price' placeholder="Update Price" />
+				</details>
+				<br>
+				<details>
+				  <summary>
+					Product SKU
+					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
+					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
+				  </summary>
+				    <input type='text' name='sku' id='sku' placeholder="Update SKU" />
+				</details>
+				<br>
+				<details>
+				  <summary>
+					Description
+					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
+					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
+				  </summary>
+				    <input type='text' name='description' id='description' placeholder="Update Description" />
+				</details>
+                <br>
+                <details>
+                    <summary>
+                        Stock
+                        <svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
+                        <svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
+                    </summary>
+                    <input type='text' name='stock' id='stock' placeholder="Update Stock" />
+                </details>
+				
+            <br><br>
+            <button name="filterSubmit" class="btn btn-dark">Update</button>
+    </form>
+    <br>
 </main>
 
-	<footer>
-	<div>
-		Service provided by YellowTeam 2021
-	</div>
-	</footer>
-	<script> $(document).ready(function () {
-	 $("#searchResults").append("<p>Server Side jquery insert</p>");
-	 });</script>
-</body>
 
+<script>
+    function myFunction() {
+        var input, filter, ul, li, a, i, txtValue;
+        input = document.getElementById("myInput");
+        filter = input.value.toUpperCase();
+        ul = document.getElementById("myUL");
+        li = ul.getElementsByTagName("li");
+        for (i = 0; i < li.length; i++) {
+            a = li[i].getElementsByTagName("a")[0];
+            txtValue = a.textContent || a.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                li[i].style.display = "";
+            } else {
+                li[i].style.display = "none";
+            }
+        }
+    }
+</script>
+
+</body>
 </html>
