@@ -17,59 +17,6 @@ if(!isset($_SESSION["username"])){
     }
 }
 
-<<<<<<< Updated upstream
-if(isset($_POST['submit'])){
-	
-	// function to display a message alert
-	function function_alert($message) { 
-      
-		// Display the alert box  
-		echo "<script>alert('$message');</script>"; 
-	}
-	
-	// Condition to check if there is no data given.
-	if ($_POST['price']=="" and $_POST['sku']=="" and $_POST['description']==""){
-		
-		// Function call 
-		function_alert("Missing Information. Please fulfill everything.");
-	
-	// Other conditions to update the database.	
-	}else{
-		$selected1 = implode("', '", $_POST['product']); // use of implode for a list of words
-		$price = $_POST['price'];
-		$sku = $_POST['sku'];
-		$description = $_POST['description'];
-		
-		// Check wich part the user want to change, and use the SQL query to update it in the database.
-		
-		if(!$description== ""){
-					
-			sqlsrv_query( $conn, "UPDATE inventory SET itemDescription = '" .$description. "' WHERE productSKU in ('" .$selected1. "')");
-								
-		}
-			
-		if(!$price == ""){
-			
-			sqlsrv_query( $conn, "UPDATE inventory SET price = '" .$price. "' WHERE productSKU in ('" .$selected1. "')");
-						
-		}
-		
-		if(!$sku == ""){
-			
-			sqlsrv_query( $conn, "UPDATE inventory SET productSKU = '" .$sku. "' WHERE productSKU in ('" .$selected1. "')");
-						
-		}
-		else{
-			
-			$selected3 = "Please select one.";
-			
-		}
-		
-	 // Function call when products are updated
-	function_alert("Updated!");
-	
-	}
-=======
 if(isset($_POST['submit'])) {
     // the array introduced here allows us to bypass a tricky situation, which is namely that:
     // prepared statements allow us to use placeholders for values, but not columns
@@ -108,7 +55,6 @@ if(isset($_POST['submit'])) {
 // helper function to display a javascript alert messages:
 function displayAlert($message) {
     echo "<script>alert('$message');</script>";
->>>>>>> Stashed changes
 }
 ?>
 
@@ -166,29 +112,22 @@ function displayAlert($message) {
 
 <main class="container p-5">
     <h2> Update Products </h2>
-    <br><br>
     <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search/Filter for a product.." title="Type in a Product Name"> <br>
     Please select the products to update<br><br>
     <form action="" method="POST">
         <ul id="myUL" class="noBulletPoints">
             <?php
-            // using php in the <select> to show dynamically the product in the webpage.
-            $sql = "SELECT * FROM inventory ORDER BY productName";
-            $query = sqlsrv_query( $conn, $sql);
-            if( $query === false ) {
-                die( print_r( sqlsrv_errors(), true));
-            }
-            // A loop function to display all the products in the database.
-            while( $products = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC) ) {
-                $product=$products["productName"];
+            // I'm choosing to not allow search by the number left in stock, but we can introduce this if needed
+            $sql = "SELECT * 
+                    FROM yellowteam.dbo.inventory 
+                    ORDER BY productName";
+            $stmt = sqlsrv_prepare($conn, $sql);
+            sqlsrv_execute($stmt);
+            while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+                // name="selection[]" explanation: https://stackoverflow.com/questions/4688880/html-element-array-name-something-or-name-something
+                // this stores the itemID values for checkmarked boxes in a list(array) called selection[]
+                // this list of itemIDs is later used in an UPDATE SET WHERE IN statement, where a single field is updated for every itemID
                 ?>
-<<<<<<< Updated upstream
-                <li><a>
-                        <input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
-                        <label for=""> <?php echo $product." ".$products["productSKU"]."  $".round($products["price"],2);?> </label>
-                    </a></li>
-                <?php
-=======
             <li><a>
                     <input type="checkbox" name="selection[]" value="<?php echo $row["itemID"]; ?>" />
                     <label for="">
@@ -196,13 +135,12 @@ function displayAlert($message) {
                             $row["productName"]." "
                             .$row["productSKU"]."  $"
                             .round($row["price"],2)." "
-                            // .$row["itemDescription"] TODO: reintroduce when more readable
+                            // .$row["itemDescription"]TODO: reintroduce when more readable
                             ." In Stock: " .$row["stock"];
                         ?>
                     </label>
                 </a></li>
             <?php
->>>>>>> Stashed changes
             }?>
             <br>
 				<details open>
