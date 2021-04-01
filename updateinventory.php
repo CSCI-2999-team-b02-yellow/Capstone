@@ -31,7 +31,9 @@ if(isset($_POST['submit'])) {
     $columnValues['productSKU'] = $_POST['sku'];
     $columnValues['itemDescription'] = $_POST['description'];
     $columnValues['price'] = $_POST['price'];
-    // $columnValues['stock'] = $_POST['stock']; TODO: needs stock implemented later
+
+    $columnValues['stock'] = $_POST['stock'];
+
 
     // https://stackoverflow.com/questions/33205087/sql-update-where-in-list-or-update-each-individually
     // foreach ($arrayName as $key => $value) https://www.w3schools.com/php/php_arrays_associative.asp
@@ -40,7 +42,9 @@ if(isset($_POST['submit'])) {
     foreach ($columnValues as $column => $userInput) {
         if(!$userInput == "") { // TODO: frustrating php data types why does strict === not work, only ==
             $selection = implode("', '", $_POST['selection']); // $_POST['selection'] comes from name="selection[]" in li input
-            echo "<script>console.log('selection is: $selection column is: $column userInput is: $userInput')</script>";
+
+            // echo "<script>console.log('selection is: $selection column is: $column userInput is: $userInput')</script>"; TODO: turn on for testing
+
             $sql = "UPDATE yellowteam.dbo.inventory SET ".$column." = ? WHERE itemID in (?)";
             $stmt = sqlsrv_prepare($conn, $sql, array($userInput, $selection));
             sqlsrv_execute($stmt);
@@ -55,6 +59,7 @@ if(isset($_POST['submit'])) {
 // helper function to display a javascript alert messages:
 function displayAlert($message) {
     echo "<script>alert('$message');</script>";
+
 }
 ?>
 
@@ -115,7 +120,7 @@ function displayAlert($message) {
     <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search/Filter for a product.." title="Type in a Product Name"> <br>
     Please select the products to update<br><br>
     <form action="" method="POST">
-        <ul id="myUL">
+        <ul id="myUL" class="noBulletPoints">
             <?php
             // I'm choosing to not allow search by the number left in stock, but we can introduce this if needed
             $sql = "SELECT * 
@@ -128,6 +133,13 @@ function displayAlert($message) {
                 // this stores the itemID values for checkmarked boxes in a list(array) called selection[]
                 // this list of itemIDs is later used in an UPDATE SET WHERE IN statement, where a single field is updated for every itemID
                 ?>
+
+                <li><a>
+                        <input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
+                        <label for=""> <?php echo $product." ".$products["productSKU"]."  $".round($products["price"],2);?> </label>
+                    </a></li>
+                <?php
+
             <li><a>
                     <input type="checkbox" name="selection[]" value="<?php echo $row["itemID"]; ?>" />
                     <label for="">
@@ -135,12 +147,14 @@ function displayAlert($message) {
                             $row["productName"]." "
                             .$row["productSKU"]."  $"
                             .round($row["price"],2)." "
-                            .$row["itemDescription"]." In Stock: "
-                            .$row["stock"];
+                            // .$row["itemDescription"] TODO: reintroduce when more readable
+                            ." In Stock: " .$row["stock"];
+
                         ?>
                     </label>
                 </a></li>
             <?php
+
             }?>
             <br>
 				<details open>
@@ -149,7 +163,7 @@ function displayAlert($message) {
 					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
 					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
 				  </summary>
-					<input type='text' name='price' id='price' placeholder="The New Update">
+					<input type='text' name='price' id='price' placeholder="Update Price">
 				</details>
 				<br>
 				<details>
@@ -158,7 +172,7 @@ function displayAlert($message) {
 					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
 					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
 				  </summary>
-				    <input type='text' name='sku' id='sku' placeholder="The New Update">
+				    <input type='text' name='sku' id='sku' placeholder="Update SKU">
 				</details>
 				<br>
 				<details>
@@ -167,22 +181,30 @@ function displayAlert($message) {
 					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
 					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
 				  </summary>
-				    <input type='text' name='description' id='description' placeholder="The New Update">
+				    <input type='text' name='description' id='description' placeholder="Update Description">
 				</details>
-				
-            <br><br>
-            <button name="submit" class="btn btn-dark">Update</button>
+                <br>
+                <details>
+                    <summary>
+                        Stock
+                        <svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
+                        <svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
+                    </summary>
+                    <input type='text' name='stock' id='stock' placeholder="Update Stock">
+                </details>
+                <br><br>
+                <button name="submit" class="btn btn-dark">Update</button>
+
+
     </form>
     <br>
 </main>
 
 <script>
 function myFunction() {
-    var input, filter, ul, li, a, i, txtValue;
-    input = document.getElementById("myInput");
-    filter = input.value.toUpperCase();
-    ul = document.getElementById("myUL");
-    li = ul.getElementsByTagName("li");
+    var filter, li, a, i, txtValue;
+    filter = document.getElementById("myInput").value.toUpperCase();
+    li = document.getElementsByTagName("li");
     for (i = 0; i < li.length; i++) {
         a = li[i].getElementsByTagName("a")[0];
         txtValue = a.textContent || a.innerText;
