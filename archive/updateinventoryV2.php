@@ -15,9 +15,6 @@ if(!isset($_SESSION["username"])){
     }
 }
 
-// TODO: if no checkbox is selected and you for example have price 25.58, and click update, you are logged out
-// TODO: figure out what is breaking, also why you become logged out during this process....
-
 if(isset($_POST['filterSubmit'])) {
     // implode is PHP-version of split, where it splits the strings from the selection array
     // for example it would look something like this: 13 42 27 18
@@ -39,6 +36,7 @@ if(isset($_POST['filterSubmit'])) {
     // https://stackoverflow.com/questions/33205087/sql-update-where-in-list-or-update-each-individually
     // foreach ($arrayName as $key => $value) https://www.w3schools.com/php/php_arrays_associative.asp
     // since we are using a modular approach we can now use a single update statement:
+    // TODO: figure out why implode isn't working right, can only update 1 checkmarked box at a time right now
     $count = 0;
     foreach ($columnValues as $column => $userInput) {
         if(!$userInput === "") {
