@@ -42,7 +42,8 @@ if(isset($_POST['addemployee'])){
 
         $fullname = $_POST['fullname'];
         $username = $_POST['username'];
-        $password = $_POST['password'];
+        // Hashing the password using "password_hash" function (PHP built in function) before saving it on the database.
+        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
         // placeholders (?) are used in SQL statements to prepare a statement & prevent SQL injection
         $sql = "INSERT INTO yellowteam.dbo.users (fullname, username, password, accesslevel)
