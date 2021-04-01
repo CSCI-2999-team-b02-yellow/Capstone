@@ -17,6 +17,7 @@ if(!isset($_SESSION["username"])){
     }
 }
 
+<<<<<<< Updated upstream
 if(isset($_POST['submit'])){
 	
 	// function to display a message alert
@@ -68,6 +69,46 @@ if(isset($_POST['submit'])){
 	function_alert("Updated!");
 	
 	}
+=======
+if(isset($_POST['submit'])) {
+    // the array introduced here allows us to bypass a tricky situation, which is namely that:
+    // prepared statements allow us to use placeholders for values, but not columns
+    // for example this is valid: "UPDATE inventory SET price WHERE itemID in ?" price is the name of the column
+    // however this is not valid: "UPDATE inventory SET ? WHERE itemID in ?" because the first placeholder refers to a column
+    // since our column names are derived from an associate array where they are they key they don't need sanitized (it's server side)
+    // if this were not the case, we could introduce sql injection into a prepared statement by a logical loophole!
+    $columnValues = array();
+    //$columnValues['productSKU'] = isset($_POST['sku']) ? $_POST['sku'] : null;
+    //$columnValues['itemDescription'] = isset($_POST['description']) ? $_POST['description'] : null;
+    //$columnValues['price'] = isset($_POST['price']) ? $_POST['price'] : null;
+    $columnValues['productSKU'] = $_POST['sku'];
+    $columnValues['itemDescription'] = $_POST['description'];
+    $columnValues['price'] = $_POST['price'];
+    $columnValues['stock'] = $_POST['stock'];
+
+    // https://stackoverflow.com/questions/33205087/sql-update-where-in-list-or-update-each-individually
+    // foreach ($arrayName as $key => $value) https://www.w3schools.com/php/php_arrays_associative.asp
+    // since we are using a modular approach we can now use a single update statement:
+    $count = 0;
+    foreach ($columnValues as $column => $userInput) {
+        if(!$userInput == "") { // TODO: frustrating php data types why does strict === not work, only ==
+            $selection = implode("', '", $_POST['selection']); // $_POST['selection'] comes from name="selection[]" in li input
+            // echo "<script>console.log('selection is: $selection column is: $column userInput is: $userInput')</script>"; TODO: turn on for testing
+            $sql = "UPDATE yellowteam.dbo.inventory SET ".$column." = ? WHERE itemID in (?)";
+            $stmt = sqlsrv_prepare($conn, $sql, array($userInput, $selection));
+            sqlsrv_execute($stmt);
+            $count++;
+        }
+    }
+    // this is called a ternary operator, it helps us keep code smaller following this logic:
+    // condition to be tested ? do this if true : do this if false;
+    $count > 0 ? displayAlert("Updated!") : displayAlert("At least one update field must be filled out.");
+}
+
+// helper function to display a javascript alert messages:
+function displayAlert($message) {
+    echo "<script>alert('$message');</script>";
+>>>>>>> Stashed changes
 }
 ?>
 
@@ -129,7 +170,7 @@ if(isset($_POST['submit'])){
     <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search/Filter for a product.." title="Type in a Product Name"> <br>
     Please select the products to update<br><br>
     <form action="" method="POST">
-        <ul id="myUL">
+        <ul id="myUL" class="noBulletPoints">
             <?php
             // using php in the <select> to show dynamically the product in the webpage.
             $sql = "SELECT * FROM inventory ORDER BY productName";
@@ -141,11 +182,27 @@ if(isset($_POST['submit'])){
             while( $products = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC) ) {
                 $product=$products["productName"];
                 ?>
+<<<<<<< Updated upstream
                 <li><a>
                         <input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
                         <label for=""> <?php echo $product." ".$products["productSKU"]."  $".round($products["price"],2);?> </label>
                     </a></li>
                 <?php
+=======
+            <li><a>
+                    <input type="checkbox" name="selection[]" value="<?php echo $row["itemID"]; ?>" />
+                    <label for="">
+                        <?php echo
+                            $row["productName"]." "
+                            .$row["productSKU"]."  $"
+                            .round($row["price"],2)." "
+                            // .$row["itemDescription"] TODO: reintroduce when more readable
+                            ." In Stock: " .$row["stock"];
+                        ?>
+                    </label>
+                </a></li>
+            <?php
+>>>>>>> Stashed changes
             }?>
             <br>
 				<details open>
@@ -154,7 +211,7 @@ if(isset($_POST['submit'])){
 					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
 					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
 				  </summary>
-					<input type='text' name='price' id='price' placeholder="The New Update">
+					<input type='text' name='price' id='price' placeholder="Update Price">
 				</details>
 				<br>
 				<details>
@@ -163,7 +220,7 @@ if(isset($_POST['submit'])){
 					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
 					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
 				  </summary>
-				    <input type='text' name='sku' id='sku' placeholder="The New Update">
+				    <input type='text' name='sku' id='sku' placeholder="Update SKU">
 				</details>
 				<br>
 				<details>
@@ -172,22 +229,30 @@ if(isset($_POST['submit'])){
 					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
 					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
 				  </summary>
-				    <input type='text' name='description' id='description' placeholder="The New Update">
+				    <input type='text' name='description' id='description' placeholder="Update Description">
 				</details>
-				
-            <br><br>
-            <button name="submit" class="btn btn-dark">Update</button>
+                <br>
+                <details>
+                    <summary>
+                        Stock
+                        <svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
+                        <svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
+                    </summary>
+                    <input type='text' name='stock' id='stock' placeholder="Update Stock">
+                </details>
+                <br><br>
+                <button name="submit" class="btn btn-dark">Update</button>
+
+
     </form>
     <br>
 </main>
 
 <script>
 function myFunction() {
-    var input, filter, ul, li, a, i, txtValue;
-    input = document.getElementById("myInput");
-    filter = input.value.toUpperCase();
-    ul = document.getElementById("myUL");
-    li = ul.getElementsByTagName("li");
+    var filter, li, a, i, txtValue;
+    filter = document.getElementById("myInput").value.toUpperCase();
+    li = document.getElementsByTagName("li");
     for (i = 0; i < li.length; i++) {
         a = li[i].getElementsByTagName("a")[0];
         txtValue = a.textContent || a.innerText;
