@@ -7,7 +7,6 @@ $serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
 $connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
 $conn = sqlsrv_connect( $serverName, $connectionInfo);
 
-
 function getOrderID($conn, $cookieID) {
     try {
         // get the orderID based on the cookieID from the cookie database table:
@@ -153,7 +152,10 @@ function getOrderID($conn, $cookieID) {
             </td>
 
             <td>
-               Print Cart<br> Created: <?php echo date("m/d/Y"); ?> <br> 
+               Print Cart<br> Created: <?php echo date("m/d/Y"); ?> <br> Receipt #:
+                <?php
+                proc_nice(8); // TODO: positive higher numbers are lower priority, making sure $_SESSION orderID is available before we display
+                echo $_SESSION['orderID'] ?>
             </td>
           </tr>
         </table>
@@ -170,12 +172,12 @@ function getOrderID($conn, $cookieID) {
     </tr>
 	
 	<?php
-	
         $cookieID = isset($_COOKIE['cookieID']) ? $_COOKIE['cookieID'] : null;
         $orderID = isset($_COOKIE['cookieID']) ? getOrderID($conn, $cookieID) : null;
 
         if ($cookieID !== null && $orderID !== null) {
             try {
+                $_SESSION['orderID'] = $orderID; // TODO: make sure we don't use session order ID for anything but printing a receipt!!
                 $sql = "SELECT yellowteam.dbo.inventory.productName, 
                             yellowteam.dbo.inventory.productSKU, 
                             yellowteam.dbo.orders.quantity, 
@@ -194,9 +196,9 @@ function getOrderID($conn, $cookieID) {
     <tr class="item" v-for="item in items">
 	  
       <td><?php echo $row["productName"]." - ".$row["productSKU"]; ?></td>
-      <td><?php echo '$'.round($row["price"]/$row["quantity"], 2); ?></td>
+      <td><?php echo '$'.number_format($row["price"]/$row["quantity"], 2, '.', ','); ?></td>
       <td><?php echo $row["quantity"]; ?></td>
-      <td><?php echo '$'.round($row["price"], 2); ?></td>
+      <td><?php echo '$'.number_format($row["price"], 2, '.', ','); ?></td>
 	  
     </tr>
             <?php
@@ -207,7 +209,7 @@ function getOrderID($conn, $cookieID) {
     <tr class="total">
       <td colspan="3"></td>
       <td>Total:</td>
-	  <td><?php echo '$'.round($total, 2); ?></td>
+	  <td><?php echo '$'.number_format($total, 2, '.', ','); ?></td>
 	  <td></td>
     </tr>
 	<?php

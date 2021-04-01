@@ -79,7 +79,7 @@ function getOrderID($conn, $cookieID) {
             echo '<a href="login.php">Login</a>';
         }?>
         <?php if(isset($_SESSION["username"])) {
-            echo '<a href="logout.php">Logout</a>';
+            echo '<a href="logout.php">Logout</a>'; // TODO: get a clear cart button added next to print cart with verification
         }?>
     </div>
 </div>
@@ -97,6 +97,7 @@ function getOrderID($conn, $cookieID) {
             <th scope="col">#</th>
             <th scope="col">Product Name</th>
             <th scope="col">SKU</th>
+            <th scope="col">Unit Cost</th>
             <th scope="col">Quantity</th>
             <th scope="col">Price</th>
         </tr>
@@ -127,8 +128,9 @@ function getOrderID($conn, $cookieID) {
                 <th scope="row"><?php echo $count; ?></th>
                 <td><?php echo $row["productName"]; ?></td>
                 <td><?php echo $row["productSKU"]; ?></td>
+                <td><?php echo '$'.number_format($row["price"]/$row["quantity"], 2, '.', ','); ?></td>
                 <td><?php echo $row["quantity"]; ?></td>
-                <td><?php echo '$'.round($row["price"], 2); ?></td>
+                <td><?php echo '$'.number_format($row["price"],2, '.', ','); ?></td>
             </tr>
             <?php
                 $count++;
@@ -139,8 +141,9 @@ function getOrderID($conn, $cookieID) {
                 <th></th>
                 <th></th>
                 <th></th>
+                <th></th>
                 <th>Total:</th>
-                <th><?php echo '$'.round($total, 2); ?></th>
+                <th><?php echo '$'.number_format($total, 2, '.', ','); ?></th>
                 </thead>
             </tr>
             <?php

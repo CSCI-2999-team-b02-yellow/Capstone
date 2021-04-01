@@ -159,38 +159,28 @@ function genCookieID() {
   </thead>
   <tbody>
 	<?php
-
-	$sqlTwo = "SELECT * FROM inventory";
-
-	$query = sqlsrv_query($conn, $sqlTwo);
-	if( $query === false ) {
-		 die( print_r( sqlsrv_errors(), true));
-	}
-	// A loop function to display all the products in the database.
-	$number=0;
-	while( $products = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC) ) {  
-		$number=$number+1;
-		$itemID=$products["itemID"];
-		$product=$products["productName"];
-		$sku=$products["productSKU"];
-		$description=$products["itemDescription"];
-		$price=round($products["price"],2);
-	
-		?>
+	$sql= "SELECT * FROM yellowteam.dbo.inventory";
+	$stmt = sqlsrv_prepare($conn, $sql);
+	sqlsrv_execute($stmt);
+	$count = 1;
+    while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+    ?>
 		<tr>
-		  <th scope="row"><?php echo $number; ?></th>
-		  <td><?php echo $product; ?></td>
-		  <td><?php echo $sku; ?></td>
-		  <td><?php echo $description; ?></td>
-		  <td><?php echo '$'.$price; ?></td>
+		  <th scope="row"><?php echo $count; ?></th>
+		  <td><?php echo $row["productName"]; ?></td>
+		  <td><?php echo $row["productSKU"]; ?></td>
+		  <td><?php echo $row["itemDescription"]; ?></td>
+		  <td><?php echo '$'.number_format($row["price"],2, '.', ','); ?></td>
 		  <td><form action="" method="POST">
             <input type="text" name="quantity" value="1" class="form-control" />
-            <input type="hidden" name="itemID" value="<?php echo $itemID; ?>" />
+            <input type="hidden" name="<?php echo $row["itemID"]; ?>" />
 			<button type="submit" name="addToCart" class="btn btn-dark">+ Add to Cart</button>
           </form></td>
 		</tr>
     <?php
-	}?>
+        $count++;
+	}
+	?>
   </tbody>
 </table>
 </main>
