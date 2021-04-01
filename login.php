@@ -113,8 +113,8 @@ if(isset($_POST['submit'])) {
              * can be used to convert plaintext to hash, so all registered users make hashed passwords.
              */
 
-            // checks form password matches database password
-            if($password === $hashed_password) {
+            // checks form password matches database password (used "password_verify" to check between the hash and the palintext) 
+            if(password_verify($password, $hashed_password)) {
                 $banTime = failCheck($conn, $username);
                 if ($banTime === null) {
                     // Store data in session variables, username basically means user is logged in
