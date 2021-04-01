@@ -17,57 +17,44 @@ if(!isset($_SESSION["username"])){
     }
 }
 
-if(isset($_POST['submit'])){
-	
-	// function to display a message alert
-	function function_alert($message) { 
-      
-		// Display the alert box  
-		echo "<script>alert('$message');</script>"; 
-	}
-	
-	// Condition to check if there is no data given.
-	if ($_POST['price']=="" and $_POST['sku']=="" and $_POST['description']==""){
-		
-		// Function call 
-		function_alert("Missing Information. Please fulfill everything.");
-	
-	// Other conditions to update the database.	
-	}else{
-		$selected1 = implode("', '", $_POST['product']); // use of implode for a list of words
-		$price = $_POST['price'];
-		$sku = $_POST['sku'];
-		$description = $_POST['description'];
-		
-		// Check wich part the user want to change, and use the SQL query to update it in the database.
-		
-		if(!$description== ""){
-					
-			sqlsrv_query( $conn, "UPDATE inventory SET itemDescription = '" .$description. "' WHERE productSKU in ('" .$selected1. "')");
-								
-		}
-			
-		if(!$price == ""){
-			
-			sqlsrv_query( $conn, "UPDATE inventory SET price = '" .$price. "' WHERE productSKU in ('" .$selected1. "')");
-						
-		}
-		
-		if(!$sku == ""){
-			
-			sqlsrv_query( $conn, "UPDATE inventory SET productSKU = '" .$sku. "' WHERE productSKU in ('" .$selected1. "')");
-						
-		}
-		else{
-			
-			$selected3 = "Please select one.";
-			
-		}
-		
-	 // Function call when products are updated
-	function_alert("Updated!");
-	
-	}
+if(isset($_POST['submit'])) {
+    // the array introduced here allows us to bypass a tricky situation, which is namely that:
+    // prepared statements allow us to use placeholders for values, but not columns
+    // for example this is valid: "UPDATE inventory SET price WHERE itemID in ?" price is the name of the column
+    // however this is not valid: "UPDATE inventory SET ? WHERE itemID in ?" because the first placeholder refers to a column
+    // since our column names are derived from an associate array where they are they key they don't need sanitized (it's server side)
+    // if this were not the case, we could introduce sql injection into a prepared statement by a logical loophole!
+    $columnValues = array();
+    //$columnValues['productSKU'] = isset($_POST['sku']) ? $_POST['sku'] : null;
+    //$columnValues['itemDescription'] = isset($_POST['description']) ? $_POST['description'] : null;
+    //$columnValues['price'] = isset($_POST['price']) ? $_POST['price'] : null;
+    $columnValues['productSKU'] = $_POST['sku'];
+    $columnValues['itemDescription'] = $_POST['description'];
+    $columnValues['price'] = $_POST['price'];
+    // $columnValues['stock'] = $_POST['stock']; TODO: needs stock implemented later
+
+    // https://stackoverflow.com/questions/33205087/sql-update-where-in-list-or-update-each-individually
+    // foreach ($arrayName as $key => $value) https://www.w3schools.com/php/php_arrays_associative.asp
+    // since we are using a modular approach we can now use a single update statement:
+    $count = 0;
+    foreach ($columnValues as $column => $userInput) {
+        if(!$userInput == "") { // TODO: frustrating php data types why does strict === not work, only ==
+            $selection = implode("', '", $_POST['selection']); // $_POST['selection'] comes from name="selection[]" in li input
+            echo "<script>console.log('selection is: $selection column is: $column userInput is: $userInput')</script>";
+            $sql = "UPDATE yellowteam.dbo.inventory SET ".$column." = ? WHERE itemID in (?)";
+            $stmt = sqlsrv_prepare($conn, $sql, array($userInput, $selection));
+            sqlsrv_execute($stmt);
+            $count++;
+        }
+    }
+    // this is called a ternary operator, it helps us keep code smaller following this logic:
+    // condition to be tested ? do this if true : do this if false;
+    $count > 0 ? displayAlert("Updated!") : displayAlert("At least one update field must be filled out.");
+}
+
+// helper function to display a javascript alert messages:
+function displayAlert($message) {
+    echo "<script>alert('$message');</script>";
 }
 ?>
 
@@ -125,27 +112,35 @@ if(isset($_POST['submit'])){
 
 <main class="container p-5">
     <h2> Update Products </h2>
-    <br><br>
     <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search/Filter for a product.." title="Type in a Product Name"> <br>
     Please select the products to update<br><br>
     <form action="" method="POST">
         <ul id="myUL">
             <?php
-            // using php in the <select> to show dynamically the product in the webpage.
-            $sql = "SELECT * FROM inventory ORDER BY productName";
-            $query = sqlsrv_query( $conn, $sql);
-            if( $query === false ) {
-                die( print_r( sqlsrv_errors(), true));
-            }
-            // A loop function to display all the products in the database.
-            while( $products = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC) ) {
-                $product=$products["productName"];
+            // I'm choosing to not allow search by the number left in stock, but we can introduce this if needed
+            $sql = "SELECT * 
+                    FROM yellowteam.dbo.inventory 
+                    ORDER BY productName";
+            $stmt = sqlsrv_prepare($conn, $sql);
+            sqlsrv_execute($stmt);
+            while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+                // name="selection[]" explanation: https://stackoverflow.com/questions/4688880/html-element-array-name-something-or-name-something
+                // this stores the itemID values for checkmarked boxes in a list(array) called selection[]
+                // this list of itemIDs is later used in an UPDATE SET WHERE IN statement, where a single field is updated for every itemID
                 ?>
-                <li><a>
-                        <input type="checkbox" name="product[]" value="<?php echo $products["productSKU"]; ?>">
-                        <label for=""> <?php echo $product." ".$products["productSKU"]."  $".round($products["price"],2);?> </label>
-                    </a></li>
-                <?php
+            <li><a>
+                    <input type="checkbox" name="selection[]" value="<?php echo $row["itemID"]; ?>" />
+                    <label for="">
+                        <?php echo
+                            $row["productName"]." "
+                            .$row["productSKU"]."  $"
+                            .round($row["price"],2)." "
+                            .$row["itemDescription"]." In Stock: "
+                            .$row["stock"];
+                        ?>
+                    </label>
+                </a></li>
+            <?php
             }?>
             <br>
 				<details open>

@@ -22,7 +22,7 @@ if(isset($_POST['filterSubmit'])) {
     // implode is PHP-version of split, where it splits the strings from the selection array
     // for example it would look something like this: 13 42 27 18
     // those numbers represent the itemIDs split into the $selection string after using implode on the posted array
-    $selection = implode("', '", $_POST['selection']);
+    $selection = implode("', '", $_POST['product']);
 
     // the array introduced here allows us to bypass a tricky situation, which is namely that:
     // prepared statements allow us to use placeholders for values, but not columns
@@ -144,7 +144,7 @@ function displayAlert($message) {
                     // this list of itemIDs is later used in an UPDATE SET WHERE IN statement, where a single field is updated for every itemID
                 ?>
                 <li><a>
-                        <input type="checkbox" name="selection[]" value="<?php echo $row["itemID"]; ?>" />
+                        <input type="checkbox" name="product[]" value="<?php echo $row["itemID"]; ?>" />
                         <label for="">
                             <?php echo
                                 $row["productName"]." "

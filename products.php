@@ -38,9 +38,21 @@ function addItem($conn, $cookieID, $itemID, $quantity) {
         }
         echo '<script>console.log("orderID is: '.$orderID.'")</script>';
 
+        // check if the item already exists in the database, insert into if not, update if so
+        $sql = "SELECT quantity FROM yellowteam.dbo.orders WHERE orderID = ? AND itemID = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($orderID, $itemID, $quantity), array( "Scrollable" => "buffered"));
+        sqlsrv_execute($stmt);
+        if(sqlsrv_num_rows($stmt) === 1) {
+            while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+                $quantity += $row['quantity']; // we grab quality so we can reuse for update statement
+            }
+            $sql = ""; // need to write update set statement
+        } else {
+            $sql = "INSERT INTO yellowteam.dbo.orders (orderID, itemID, quantity) VALUES (?, ?, ?)";
+        }
+
         // TODO: Add product to orders table using itemID, orderID (pulled from cookie table), and quantity:
         // add the item based on the order ID into the database orders table:
-        $sql = "INSERT INTO yellowteam.dbo.orders (orderID, itemID, quantity) VALUES (?, ?, ?)";
         $stmt = sqlsrv_prepare($conn, $sql, array($orderID, $itemID, $quantity), array( "Scrollable" => "buffered"));
         sqlsrv_execute($stmt);
         echo '<script>console.log("Added item ID '.$itemID.' to orderID '.$orderID.' with quantity '.$quantity.'")</script>';
