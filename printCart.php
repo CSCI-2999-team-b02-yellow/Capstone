@@ -24,6 +24,10 @@ function getOrderID($conn, $cookieID) {
     }
     return $orderID;
 }
+
+$cookieID = isset($_COOKIE['cookieID']) ? $_COOKIE['cookieID'] : null;
+$orderID = isset($_COOKIE['cookieID']) ? getOrderID($conn, $cookieID) : null;
+
 ?>
 
 <!DOCTYPE html>
@@ -153,9 +157,7 @@ function getOrderID($conn, $cookieID) {
 
             <td>
                Print Cart<br> Created: <?php echo date("m/d/Y"); ?> <br> Receipt #:
-                <?php
-                proc_nice(8); // TODO: positive higher numbers are lower priority, making sure $_SESSION orderID is available before we display
-                echo $_SESSION['orderID'] ?>
+                <?php echo ($cookieID !== null && $orderID !== null) ? $orderID : "" ?>
             </td>
           </tr>
         </table>
@@ -172,9 +174,6 @@ function getOrderID($conn, $cookieID) {
     </tr>
 	
 	<?php
-        $cookieID = isset($_COOKIE['cookieID']) ? $_COOKIE['cookieID'] : null;
-        $orderID = isset($_COOKIE['cookieID']) ? getOrderID($conn, $cookieID) : null;
-
         if ($cookieID !== null && $orderID !== null) {
             try {
                 $_SESSION['orderID'] = $orderID; // TODO: make sure we don't use session order ID for anything but printing a receipt!!
