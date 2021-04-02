@@ -173,7 +173,7 @@ function genCookieID() {
 		  <td><?php echo '$'.number_format($row["price"],2, '.', ','); ?></td>
 		  <td><form action="" method="POST">
             <input type="text" name="quantity" value="1" class="form-control" />
-            <input type="hidden" name="itemID" value="<?php echo $itemID; ?>" />
+            <input type="hidden" name="itemID" value="<?php echo $row["itemID"]; ?>" />
 			<button type="submit" name="addToCart" class="btn btn-dark">+ Add to Cart</button>
           </form></td>
 		</tr>
