@@ -37,6 +37,8 @@ if(isset($_POST['submit'])) {
     // foreach ($arrayName as $key => $value) https://www.w3schools.com/php/php_arrays_associative.asp
     // since we are using a modular approach we can now use a single update statement:
     $count = 0;
+
+    // TODO: possible syntax fix for multiple checkmarked items going through: https://www.sqlservertutorial.net/sql-server-basics/sql-server-insert-multiple-rows/
     foreach ($columnValues as $column => $userInput) {
         if(!$userInput == "") { // TODO: frustrating php data types why does strict === not work, only ==
             $selection = implode("', '", $_POST['selection']); // $_POST['selection'] comes from name="selection[]" in li input
