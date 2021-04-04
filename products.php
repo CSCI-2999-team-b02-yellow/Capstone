@@ -38,12 +38,28 @@ function addItem($conn, $cookieID, $itemID, $quantity) {
         }
         echo '<script>console.log("orderID is: '.$orderID.'")</script>';
 
-        // TODO: Add product to orders table using itemID, orderID (pulled from cookie table), and quantity:
-        // add the item based on the order ID into the database orders table:
-        $sql = "INSERT INTO yellowteam.dbo.orders (orderID, itemID, quantity) VALUES (?, ?, ?)";
-        $stmt = sqlsrv_prepare($conn, $sql, array($orderID, $itemID, $quantity), array( "Scrollable" => "buffered"));
+        // TODO: check if an item is already on the order, if it is update quantity if not create item
+        $sql = "SELECT * FROM yellowteam.dbo.orders WHERE orderID = ? AND itemID = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($orderID, $itemID), array( "Scrollable" => "buffered"));
         sqlsrv_execute($stmt);
-        echo '<script>console.log("Added item ID '.$itemID.' to orderID '.$orderID.' with quantity '.$quantity.'")</script>';
+        $itemExists = sqlsrv_num_rows($stmt); // if query gets nothing returns false, else returns number of rows
+        echo '<script>console.log("itemExists is: '.$itemExists.'")</script>';
+        $currentQuantity = null;
+        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            $currentQuantity = $row['quantity'];
+        }
+
+        // adds product to cart, if product already exists in cart, increases quantity, else creates a new row in the database
+        if ($itemExists === 1) { // itemID already exists in orders table, update the quantity only
+            $sql ="UPDATE yellowteam.dbo.orders SET quantity = ? WHERE orderID= ? AND itemID = ?";
+            $stmt = sqlsrv_prepare($conn, $sql, array($currentQuantity+$quantity, $orderID, $itemID), array( "Scrollable" => "buffered"));
+            sqlsrv_execute($stmt);
+        } else { // itemID is not in the database, so we create a new row
+            $sql = "INSERT INTO yellowteam.dbo.orders (orderID, itemID, quantity) VALUES (?, ?, ?)";
+            $stmt = sqlsrv_prepare($conn, $sql, array($orderID, $itemID, $quantity), array( "Scrollable" => "buffered"));
+            sqlsrv_execute($stmt);
+        }
+
     } catch (exception $e) {
         // Need to look up and introduce error handling logic here:
     } finally {
@@ -165,22 +181,29 @@ function genCookieID() {
 	$count = 1;
     while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
     ?>
-		<tr>
+		<tr id="<?php echo $row["itemID"]; ?>">
 		  <th scope="row"><?php echo $count; ?></th>
 		  <td><?php echo $row["productName"]; ?></td>
 		  <td><?php echo $row["productSKU"]; ?></td>
 		  <td><?php echo $row["itemDescription"]; ?></td>
 		  <td><?php echo '$'.number_format($row["price"],2, '.', ','); ?></td>
-		  <td><form action="" method="POST">
-            <input type="text" name="quantity" value="1" class="form-control" />
-            <input type="hidden" name="itemID" value="<?php echo $row["itemID"]; ?>" />
-			<button type="submit" name="addToCart" class="btn btn-dark">+ Add to Cart</button>
+          <?php if($row['stock'] > 0) { ?>
+          <td><form action="" method="POST">
+              <div>
+              <input type="hidden" name="itemID" value="<?php echo $row["itemID"]; ?>" />
+              <button type="submit" name="addToCart" class="btn btn-dark">+ Add to Cart</button>
+              <input type="text" name="quantity" style="width:25%;" value="1" class="form-control" />
+              </div>
           </form></td>
+          <?php } else { ?>
+            <td><span class="customBadge danger">Out of Stock</span></td>
+          <?php } ?>
 		</tr>
     <?php
         $count++;
 	}
 	?>
+
   </tbody>
 </table>
 </main>

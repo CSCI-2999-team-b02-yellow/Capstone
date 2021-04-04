@@ -74,3 +74,30 @@ body {
 .noBulletPoints {
   list-style-type: none;
 }
+
+/* used in products.php, can be recycled for fake button styles */
+.customBadge {
+  display: inline-block;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  font-weight: 400;
+  user-select: none;
+  border: 1px solid transparent;
+  padding: .375rem .75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: .25rem;
+}
+
+.customBadge.danger { /* Red fake button */
+  color: #fff;
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.customBadge.warning { /* Yellow fake button */
+  color: #212529;
+  background-color: #ffc107;
+  border-color: #ffc107;
+}
