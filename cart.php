@@ -98,8 +98,10 @@ $isCartLoaded = sqlsrv_num_rows($stmt);
 
 if(isset($_POST["checkout"])) {
     if ($exceedsStock === false && $isCartLoaded !== false) {
+        echo '<script>console.log("Going in... orderID is :'.$orderID.'")</script>';
+        echo '<script>console.log("Going in... username is :'.$username.'")</script>';
         // first we have to put the orderID into the new orderHistory table
-        $sql = "INSERT INTO yellowteam.dbo.orderhistory (username, orderID, orderTimeStamp) VALUES (?, ?, SELECT CONVERT (date, GETDATE()))";
+        $sql = "INSERT INTO yellowteam.dbo.orderhistory (username, orderID, orderTimeStamp) VALUES (?, ?, (SELECT TRY_CONVERT (DATE, GETDATE())))";
         $stmt = sqlsrv_prepare($conn, $sql, array($username, $orderID));
         sqlsrv_execute($stmt);
 
