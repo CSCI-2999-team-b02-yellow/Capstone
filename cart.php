@@ -11,9 +11,6 @@ $cookieID = isset($_COOKIE['cookieID']) ? $_COOKIE['cookieID'] : null;
 $orderID = isset($_COOKIE['cookieID']) ? getOrderID($conn, $cookieID) : null;
 $username = isset($_SESSION['username']) ? $_SESSION['username'] : "Guest";
 
-// assume we have enough in stock, will get set to true when table is generated if we don't have enough
-$exceedsStock = false;
-
 if(isset($_POST['clearCart'])) {
     clearCart($conn, $orderID);
 }
@@ -94,10 +91,29 @@ $sql = "SELECT yellowteam.dbo.inventory.itemID,
         WHERE yellowteam.dbo.orders.orderID = ?";
 $stmt = sqlsrv_prepare($conn, $sql, array($orderID), array( "Scrollable" => "buffered"));
 sqlsrv_execute($stmt);
-$isCartLoaded = sqlsrv_num_rows($stmt);
+$isCartLoaded = (sqlsrv_num_rows($stmt) === false) ? 0 : sqlsrv_num_rows($stmt);
 
 if(isset($_POST["checkout"])) {
-    if ($exceedsStock === false && $isCartLoaded !== false) {
+    // TODO: couldn't find any viable way to store a false/true global variable, page seems to reload and reset it when table is made
+    // TODO: unless we find another way, the only option is to query the information again from the database and see if nothing overdraws stock
+    $stockExceeded = false;
+    $sql = "SELECT yellowteam.dbo.inventory.stock, 
+        yellowteam.dbo.orders.quantity 
+        FROM yellowteam.dbo.orders 
+        LEFT JOIN yellowteam.dbo.inventory 
+        ON yellowteam.dbo.inventory.itemID=yellowteam.dbo.orders.itemID
+        WHERE yellowteam.dbo.orders.orderID = ?";
+    $stmt = sqlsrv_prepare($conn, $sql, array($orderID), array( "Scrollable" => "buffered"));
+    sqlsrv_execute($stmt);
+    while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+        if ($stockExceeded === true) {
+            break;
+        } else {
+            ($row["stock"] - $row["quantity"]) > -1 ?: $stockExceeded = true;
+        }
+    }
+
+    if ($stockExceeded !== true && $isCartLoaded > 0) {
         echo '<script>console.log("Going in... orderID is :'.$orderID.'")</script>';
         echo '<script>console.log("Going in... username is :'.$username.'")</script>';
         // first we have to put the orderID into the new orderHistory table
@@ -106,6 +122,23 @@ if(isset($_POST["checkout"])) {
         sqlsrv_execute($stmt);
 
         // TODO: logic to subtract items in quantity from stock
+        // get the quantities we have in the cart
+        $sql = "SELECT itemID, quantity FROM yellowteam.dbo.orders WHERE orderID = ?";
+        $stmt = sqlsrv_prepare($conn, $sql, array($orderID));
+        sqlsrv_execute($stmt);
+
+        // place the quantities we have in the cart into an array of key => value pairs;
+        $cartPairings = array();
+        while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+            $cartPairings[$row["itemID"]] = $row["quantity"];
+        }
+
+        $sql = "UPDATE yellowteam.dbo.inventory SET stock = stock - ? WHERE itemID = ?";
+        // create a loop of sql statements for each itemID and quantity pairing from cartPairings array:
+        foreach($cartPairings as $itemID => $quantity) {
+            $stmt = sqlsrv_prepare($conn, $sql, array($quantity, $itemID));
+            sqlsrv_execute($stmt);
+        }
 
         // then we can delete the cookieID row from the cookie table and delete the local cookie
         $sql = "DELETE FROM yellowteam.dbo.cookie WHERE cookieID = ?";
@@ -113,10 +146,14 @@ if(isset($_POST["checkout"])) {
         sqlsrv_execute($stmt);
         setcookie('cookieID', "", time() - 3600); // Time in the past deletes the cookie on the client
         echo '<script>alert("Items have been checked out.")</script>';
-
-    } elseif ($exceedsStock === false && $isCartLoaded === false) {
+    } elseif ($stockExceeded !== true && $isCartLoaded < 1) {
         echo '<script>alert("There\'s nothing in your cart to check out.")</script>';
+    } else {
+        echo '<script>alert("Some item(s) in your cart exceed what we have in stock. Please resolve the conflict and try again.")</script>';
     }
+    // This is a major bandaid to page reloading after checkout is clicked and screwing up our table, but at least we don't need to learn AJAX:
+    // And even if we did learn AJAX, who knows if it would solve our issue...
+    header("Refresh:0");
 }
 
 ?>
@@ -207,6 +244,7 @@ if(isset($_POST["checkout"])) {
                 $total = 0;
                 $count = 1;
                 while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+                    // TODO: figure out AJAX for page reloading? https://stackoverflow.com/questions/2866063/submit-form-without-page-reloading
             ?>
             <tr>
                 <th scope="row"><?php echo $count; ?></th>
@@ -221,9 +259,8 @@ if(isset($_POST["checkout"])) {
                         <input type="hidden" name="itemID" value="<?php echo $row["itemID"]; ?>" />
                         <button type="submit" name="removeFromCart" class="btn btn-dark">Remove from Cart</button>
                         <input type="text" name="quantity" style="width:25%;" value="1" class="form-control" />
-                        <?php if($row['stock'] - $row['quantity'] < 0) { ?>
+                        <?php if(($row['stock'] - $row['quantity']) < 0) { ?>
                             <span class="customBadge warning">Only <?php echo $row["stock"]; ?> Available</span>
-                            <?php $exceedsStock = true; ?>
                         <?php } ?>
                 </form></td>
             </tr>
