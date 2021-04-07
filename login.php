@@ -37,7 +37,7 @@ if(isset($_POST['submit'])) {
     } elseif(empty(trim($_POST["password"]))) {
         $password_err = "Please enter your password.";
     } else {
-        $username = trim($_POST["username"]);
+        $username = htmlspecialchars(trim($_POST["username"]));
         $password = trim($_POST["password"]);
         $checkpoint1Passed = true;
     }
@@ -415,19 +415,21 @@ function failCheck($conn, $username) {
     </div>
 </div>
 
+<?php //Using 'htmlspecialchars' function to prevent from special character injection ?>
 <div class="main">
     <p>Login Info</p>
     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
         <div class="form-group <?php echo (!empty($username_err)) ? 'has-error' : ''; ?>">
             <label>Username</label>
-            <input type="text" name="username" class="form-control" value="<?php echo $username; ?>">
+			
+            <input type="text" name="username" class="form-control" value = "<?php echo htmlspecialchars($username);?>">
         </div>
         <div class="form-group <?php echo (!empty($password_err)) ? 'has-error' : ''; ?>">
             <label>Password</label>
             <input type="password" name="password" class="form-control">
         </div>
         <div class="form-group">
-            <input type="submit" name="submit" class="btn btn-primary" value="Login">
+            <input type="submit" name="submit" class="btn btn-primary" <?php echo htmlspecialchars('value = "Login"', ENT_NOQUOTES); ?>>
         </div>
         <span class="help-block"><?php echo $username_err; ?></span>
         <span class="help-block"><?php echo $password_err; ?></span>
