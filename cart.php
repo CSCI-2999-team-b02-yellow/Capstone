@@ -254,11 +254,12 @@ if(isset($_POST["checkout"])) {
                 <td><?php echo $row["quantity"]; ?></td>
                 <td><?php echo '$'.number_format($row["price"],2, '.', ','); ?></td>
                 <td><form action="" method="POST">
-                        <input type="hidden" name="currentQuantity" value="<?php echo $row["quantity"]; ?>" />
-                        <input type="hidden" name="stock" value="<?php echo $row["stock"]; ?>" />
-                        <input type="hidden" name="itemID" value="<?php echo $row["itemID"]; ?>" />
+					<?php //Using 'htmlspecialchars' function to prevent from special character injection, and the "ENT_NOQUOTES" to not convert any quotes ?>
+                        <input type="hidden" name="currentQuantity" <?php echo htmlspecialchars('value = " '. $row["quantity"]. '"', ENT_NOQUOTES); ?>/>
+                        <input type="hidden" name="stock" <?php echo htmlspecialchars('value = " '. $row["stock"]. '"', ENT_NOQUOTES); ?> />
+                        <input type="hidden" name="itemID" <?php echo htmlspecialchars('value = " '. $row["itemID"]. '"', ENT_NOQUOTES); ?> />
                         <button type="submit" name="removeFromCart" class="btn btn-dark">Remove from Cart</button>
-                        <input type="text" name="quantity" style="width:25%;" value="1" class="form-control" />
+                        <input type="number" min="1" name="quantity" style="width:40%;" <?php echo htmlspecialchars('value="1"', ENT_NOQUOTES)?> class="form-control" />
                         <?php if(($row['stock'] - $row['quantity']) < 0) { ?>
                             <span class="customBadge warning">Only <?php echo $row["stock"]; ?> Available</span>
                         <?php } ?>
