@@ -9,11 +9,11 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
 
 // What to do when the add to cart button is clicked:
 if(isset($_POST["addToCart"])) {
-    echo '<script>console.log("addToCart has been pressed")</script>';
-    $itemID = $_POST["itemID"];
-    echo '<script>console.log("itemID is: '.$itemID.'")</script>';
-    $quantity = $_POST["quantity"];
-    echo '<script>console.log("quantity is: '.$quantity.'")</script>';
+    //echo '<script>console.log("addToCart has been pressed")</script>';
+    $itemID = htmlspecialchars($_POST["itemID"]);
+    //echo '<script>console.log("itemID is: '.$itemID.'")</script>';
+    $quantity = htmlspecialchars($_POST["quantity"]);
+    //echo '<script>console.log("quantity is: '.$quantity.'")</script>';
 
 
     // TODO: If someone adds a product to a cart, check if a cookie exists with cookieID on the client computer.
@@ -181,18 +181,20 @@ function genCookieID() {
 	$count = 1;
     while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
     ?>
+		<?php //Using 'htmlspecialchars' function to prevent from special character injection ?>
 		<tr id="<?php echo $row["itemID"]; ?>">
 		  <th scope="row"><?php echo $count; ?></th>
-		  <td><?php echo $row["productName"]; ?></td>
-		  <td><?php echo $row["productSKU"]; ?></td>
-		  <td><?php echo $row["itemDescription"]; ?></td>
-		  <td><?php echo '$'.number_format($row["price"],2, '.', ','); ?></td>
+		  <td><?php echo htmlspecialchars($row["productName"]); ?></td>
+		  <td><?php echo htmlspecialchars($row["productSKU"]); ?></td>
+		  <td><?php echo htmlspecialchars($row["itemDescription"]); ?></td>
+		  <td><?php echo htmlspecialchars('$'.number_format($row["price"],2, '.', ',')); ?></td>
           <?php if($row['stock'] > 0) { ?>
           <td><form action="" method="POST">
               <div>
-              <input type="hidden" name="itemID" value="<?php echo $row["itemID"]; ?>" />
+		<?php //Using 'htmlspecialchars' function to prevent from special character injection, and the "ENT_NOQUOTES" to not convert any quotes ?>
+              <input type="hidden" name="itemID" <?php echo htmlspecialchars('value = " '. $row["itemID"]. '"', ENT_NOQUOTES); ?>/>
               <button type="submit" name="addToCart" class="btn btn-dark">+ Add to Cart</button>
-              <input type="text" name="quantity" style="width:25%;" value="1" class="form-control" />
+              <input type="number" min="1" name="quantity" style="width:40%;" <?php echo htmlspecialchars('value="1"', ENT_NOQUOTES)?> class="form-control" />
               </div>
           </form></td>
           <?php } else { ?>
