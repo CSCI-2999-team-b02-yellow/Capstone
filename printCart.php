@@ -156,8 +156,9 @@ $orderID = isset($_COOKIE['cookieID']) ? getOrderID($conn, $cookieID) : null;
             </td>
 
             <td>
-               Print Cart<br> Created: <?php echo date("m/d/Y"); ?> <br> Receipt #:
+                 Receipt #:
                 <?php echo ($cookieID !== null && $orderID !== null) ? $orderID : "" ?>
+				<br> Created: <?php echo date("m/d/Y"); ?>
             </td>
           </tr>
         </table>
