@@ -94,6 +94,7 @@ sqlsrv_execute($stmt);
 $isCartLoaded = (sqlsrv_num_rows($stmt) === false) ? 0 : sqlsrv_num_rows($stmt);
 
 if(isset($_POST["checkout"])) {
+
     // TODO: couldn't find any viable way to store a false/true global variable, page seems to reload and reset it when table is made
     // TODO: unless we find another way, the only option is to query the information again from the database and see if nothing overdraws stock
     $stockExceeded = false;
@@ -221,7 +222,7 @@ if(isset($_POST["checkout"])) {
     <form action="" method="POST">
         <button type="submit" name="clearCart" class="btn btn-link">Clear Cart</button>
     </form>
-    <a href="printCart.php" target="_blank">Print your Cart</a>
+    
 </div>
 
     <div><h3><b> Products <b></h3></div><br>
@@ -259,7 +260,7 @@ if(isset($_POST["checkout"])) {
                         <input type="hidden" name="stock" <?php echo htmlspecialchars('value = " '. $row["stock"]. '"', ENT_NOQUOTES); ?> />
                         <input type="hidden" name="itemID" <?php echo htmlspecialchars('value = " '. $row["itemID"]. '"', ENT_NOQUOTES); ?> />
                         <button type="submit" name="removeFromCart" class="btn btn-dark">Remove from Cart</button>
-                        <input type="number" min="1" name="quantity" style="width:40%;" <?php echo htmlspecialchars('value="1"', ENT_NOQUOTES)?> class="form-control" />
+                        <input type="number" min="1" name="quantity" style="width:20%;" <?php echo htmlspecialchars('value="1"', ENT_NOQUOTES)?> class="form-control" />
                         <?php if(($row['stock'] - $row['quantity']) < 0) { ?>
                             <span class="customBadge warning">Only <?php echo $row["stock"]; ?> Available</span>
                         <?php } ?>
@@ -277,8 +278,11 @@ if(isset($_POST["checkout"])) {
                 <th></th>
                 <th>Total:</th>
                 <th><?php echo '$'.number_format($total, 2, '.', ','); ?></th>
-                <th><form action="" method="POST">
-                    <button type="submit" name="checkout" class="btn btn-light">Checkout</button>
+                <th><form method="POST">
+                    <button type="submit" name="checkout" class="btn btn-light" 
+					
+					onclick=window.open("../printCart.php","demo","width=550,height=300,left=150,top=200,toolbar=0,status=0,"); 
+					target="_blank">Checkout</button>
                 </form></th>
                 </thead>
             </tr>
