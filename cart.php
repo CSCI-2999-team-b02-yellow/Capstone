@@ -93,10 +93,11 @@ $stmt = sqlsrv_prepare($conn, $sql, array($orderID), array( "Scrollable" => "buf
 sqlsrv_execute($stmt);
 $isCartLoaded = (sqlsrv_num_rows($stmt) === false) ? 0 : sqlsrv_num_rows($stmt);
 
-if(isset($_POST["checkout"])) {
+// TODO: couldn't find any viable way to store a false/true global variable, page seems to reload and reset it when table is made
+// TODO: unless we find another way, the only option is to query the information again from the database and see if nothing overdraws stock
 
-    // TODO: couldn't find any viable way to store a false/true global variable, page seems to reload and reset it when table is made
-    // TODO: unless we find another way, the only option is to query the information again from the database and see if nothing overdraws stock
+
+function checkStock($conn, $orderID) {
     $stockExceeded = false;
     $sql = "SELECT yellowteam.dbo.inventory.stock, 
         yellowteam.dbo.orders.quantity 
@@ -113,6 +114,11 @@ if(isset($_POST["checkout"])) {
             ($row["stock"] - $row["quantity"]) > -1 ?: $stockExceeded = true;
         }
     }
+    return $stockExceeded;
+}
+
+if(isset($_POST["checkout"])) {
+    $stockExceeded = checkStock($conn, $orderID);
 
     if ($stockExceeded !== true && $isCartLoaded > 0) {
         echo '<script>console.log("Going in... orderID is :'.$orderID.'")</script>';
@@ -146,7 +152,6 @@ if(isset($_POST["checkout"])) {
         $stmt = sqlsrv_prepare($conn, $sql, array($cookieID));
         sqlsrv_execute($stmt);
         setcookie('cookieID', "", time() - 3600); // Time in the past deletes the cookie on the client
-        echo '<script>alert("Items have been checked out.")</script>';
     } elseif ($stockExceeded !== true && $isCartLoaded < 1) {
         echo '<script>alert("There\'s nothing in your cart to check out.")</script>';
     } else {
@@ -211,7 +216,7 @@ if(isset($_POST["checkout"])) {
             echo '<a href="login.php">Login</a>';
         }?>
         <?php if(isset($_SESSION["username"])) {
-            echo '<a href="logout.php">Logout</a>'; // TODO: get a clear cart button added next to print cart with verification
+            echo '<a href="logout.php">Logout</a>';
         }?>
     </div>
 </div>
@@ -279,10 +284,13 @@ if(isset($_POST["checkout"])) {
                 <th>Total:</th>
                 <th><?php echo '$'.number_format($total, 2, '.', ','); ?></th>
                 <th><form method="POST">
-                    <button type="submit" name="checkout" class="btn btn-light" 
-					
-					onclick=window.open("../printCart.php","demo","width=550,height=300,left=150,top=200,toolbar=0,status=0,"); 
-					target="_blank">Checkout</button>
+                    <button type="submit" name="checkout" class="btn btn-light"
+					<?php $stockExceeded = checkStock($conn, $orderID);
+                    if ($stockExceeded !== true && $isCartLoaded > 0) { ?>
+                            onclick=window.open("../printCart.php","demo","width=550,height=300,left=150,top=200,toolbar=0,status=0,");
+                            target="_blank"
+                    <?php } ?>
+                    >Checkout</button>
                 </form></th>
                 </thead>
             </tr>
