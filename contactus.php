@@ -25,7 +25,7 @@ session_start();
 <body>
 <div class="header">
     <div class="links">
-        <a href="index.php">Home</a>
+         <a href="index.php">Home</a>
         <a href="products.php">Products</a>
         <a href="cart.php">Cart</a>
         <?php if(isset($_SESSION["accesslevel"])) {
@@ -47,6 +47,9 @@ session_start();
         }?>
         <?php if(!isset($_SESSION["username"])) {
             echo '<a href="login.php">Login</a>';
+        }?>
+        <?php if(isset($_SESSION["username"])) {
+            echo '<a href="history.php">Order History</a>';
         }?>
         <?php if(isset($_SESSION["username"])) {
             echo '<a href="logout.php">Logout</a>';
