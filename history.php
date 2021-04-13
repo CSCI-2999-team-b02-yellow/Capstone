@@ -98,7 +98,7 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
             // We can store the orderIDs inside of an array, if there's at least 1 result (orderID):
             if (sqlsrv_num_rows($stmt) > 0) {
                 while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-                    
+
                 }
 
             }
