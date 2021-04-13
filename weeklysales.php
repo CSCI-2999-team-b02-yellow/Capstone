@@ -19,7 +19,7 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
 
 <head>
     <meta charset="UTF-8">
-    <title>Products</title>
+    <title>Weekly Sales</title>
     <meta name="author" content="Team Yellow">
     <meta name="description" content="Nuts and bolts hardware company products page">
     <meta name="keywords" content="Nuts and bolts, hardware, Nuts and bolts hardware, products, inventory">
@@ -37,7 +37,7 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
 <body>
 <div class="header">
     <div class="links">
-         <a href="index.php">Home</a>
+        <a href="index.php">Home</a>
         <a href="products.php">Products</a>
         <a href="cart.php">Cart</a>
         <?php if(isset($_SESSION["accesslevel"])) {
@@ -86,33 +86,7 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
         </thead>
 
         <tbody>
-        <?php
-        try {
-            // We are selecting the checkout date, receipt # (orderID), total (price * quantity added up for each row) -- will need to join on orderID
-
-            // First we need to find the orderIDs associated with the username:
-            $sql = "SELECT yellowteam.dbo.orderhistory.orderTimeStamp,
-                    yellowteam.dbo.orderhistory.orderID
-                    FROM yellowteam.dbo.orderhistory 
-                    WHERE username = ?";
-            $stmt = sqlsrv_prepare($conn, $sql, array($_SESSION["username"]), array( "Scrollable" => "buffered"));
-            sqlsrv_execute($stmt);
-
-            $receipts = array();
-            // We can store the orderIDs inside of an array, if there's at least 1 result (orderID):
-            if (sqlsrv_num_rows($stmt) > 0) {
-                while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-
-                }
-
-            }
-        } catch (exception $e) {
-
-        } finally {
-
-        }
-
-        ?>
+        
 
 
         </tbody>

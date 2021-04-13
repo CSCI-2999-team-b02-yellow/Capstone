@@ -92,7 +92,7 @@ if(isset($_POST['registeruser'])){
 <body>
 <div class="header">
     <div class="links">
-         <a href="index.php">Home</a>
+          <a href="index.php">Home</a>
         <a href="products.php">Products</a>
         <a href="cart.php">Cart</a>
         <?php if(isset($_SESSION["accesslevel"])) {
@@ -118,6 +118,10 @@ if(isset($_POST['registeruser'])){
         <?php if(isset($_SESSION["username"])) {
             echo '<a href="history.php">Order History</a>';
         }?>
+		 <?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo '<a href="weeklysales.php">Weekly Sales</a>';
+            }
         <?php if(isset($_SESSION["username"])) {
             echo '<a href="logout.php">Logout</a>';
         }?>
