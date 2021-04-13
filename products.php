@@ -155,6 +155,9 @@ function genCookieID() {
             echo '<a href="login.php">Login</a>';
         }?>
         <?php if(isset($_SESSION["username"])) {
+            echo '<a href="history.php">Order History</a>';
+        }?>
+        <?php if(isset($_SESSION["username"])) {
             echo '<a href="logout.php">Logout</a>';
         }?>
     </div>
