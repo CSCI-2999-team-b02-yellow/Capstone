@@ -102,16 +102,38 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
             // We can store the orderIDs inside of an array, if there's at least 1 result (orderID):
             if (sqlsrv_num_rows($stmt) > 0) {
                 while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
-
+                    $receipts[] = $row["orderID"];
                 }
+            }
 
+            $sql = "SELECT yellowteam.dbo.orderhistory.orderTimeStamp,
+            yellowteam.dbo.orderhistory.orderID,
+            yellowteam.dbo.orders.quantity * yellowteam.dbo.inventory.price AS price 
+            FROM yellowteam.dbo.orders
+            LEFT JOIN yellowteam.dbo.orderhistory
+            ON yellowteam.dbo.orderhistory.orderID=yellowteam.dbo.orders.orderID
+            LEFT JOIN yellowteam.dbo.inventory
+            ON yellowteam.dbo.inventory.itemID=yellowteam.dbo.orders.itemID
+            WHERE yellowteam.dbo.orders.orderID = ?";
+            $count = 1;
+            foreach ($receipts as $receiptRecord => $receiptID) {
+                $stmt = sqlsrv_prepare($conn, $sql, array($receiptID));
+                sqlsrv_execute($stmt); ?>
+                <tr><?php echo $count ?></tr>
+                <?php
+                while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) { ?>
+                    <tr><?php echo $row["orderTimeStamp"]?></tr>
+                    <tr><?php echo $row["orderID"]?></tr>
+                    <tr><?php echo $row["price"]?></tr>
+                <?php }
+                $count++;
+                // TODO: throw in while loop spitting all of these out in a table with timestamp being clickable
             }
         } catch (exception $e) {
-
+            echo $e->getmessage();
         } finally {
-
+            sqlsrv_free_stmt($stmt);
         }
-
         ?>
 
 
