@@ -63,10 +63,11 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
         <?php if(isset($_SESSION["username"])) {
             echo '<a href="history.php">Order History</a>';
         }?>
-		 <?php if(isset($_SESSION["accesslevel"])) {
+        <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
                 echo '<a href="weeklysales.php">Weekly Sales</a>';
             }
+        }?>
         <?php if(isset($_SESSION["username"])) {
             echo '<a href="logout.php">Logout</a>';
         }?>
@@ -106,25 +107,28 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
                 }
             }
 
+            // Note: I've indented the nested query to the right, we basically get orderTimeStamp, orderID and Total:
             $sql = "SELECT yellowteam.dbo.orderhistory.orderTimeStamp,
-            yellowteam.dbo.orderhistory.orderID,
-            yellowteam.dbo.orders.quantity * yellowteam.dbo.inventory.price AS price 
-            FROM yellowteam.dbo.orders
-            LEFT JOIN yellowteam.dbo.orderhistory
-            ON yellowteam.dbo.orderhistory.orderID=yellowteam.dbo.orders.orderID
-            LEFT JOIN yellowteam.dbo.inventory
-            ON yellowteam.dbo.inventory.itemID=yellowteam.dbo.orders.itemID
-            WHERE yellowteam.dbo.orders.orderID = ?";
+                   yellowteam.dbo.orderhistory.orderID,
+                        (SELECT SUM(yellowteam.dbo.orders.quantity * yellowteam.dbo.inventory.price)
+                        FROM yellowteam.dbo.orders
+                        LEFT JOIN yellowteam.dbo.inventory
+                        ON yellowteam.dbo.inventory.itemID=yellowteam.dbo.orders.itemID
+                        WHERE yellowteam.dbo.orders.orderID = ?) AS total
+                   FROM yellowteam.dbo.orderhistory
+                   WHERE yellowteam.dbo.orderhistory.orderID = ?";
             $count = 1;
             foreach ($receipts as $receiptRecord => $receiptID) {
-                $stmt = sqlsrv_prepare($conn, $sql, array($receiptID));
+                $stmt = sqlsrv_prepare($conn, $sql, array($receiptID, $receiptID));
                 sqlsrv_execute($stmt); ?>
-                <tr><?php echo $count ?></tr>
+                <tr>
+                <td><?php echo $count ?></td>
                 <?php
                 while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) { ?>
-                    <tr><?php echo $row["orderTimeStamp"]?></tr>
-                    <tr><?php echo $row["orderID"]?></tr>
-                    <tr><?php echo $row["price"]?></tr>
+                    <td><?php echo $row["orderTimeStamp"]->format('Y-m-d');?></td>
+                    <td><?php echo $row["orderID"]?></td>
+                    <td><?php echo $row["total"]?></td>
+                </tr>
                 <?php }
                 $count++;
                 // TODO: throw in while loop spitting all of these out in a table with timestamp being clickable
