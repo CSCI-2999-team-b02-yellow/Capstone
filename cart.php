@@ -124,7 +124,7 @@ if(isset($_POST["checkout"])) {
         echo '<script>console.log("Going in... orderID is :'.$orderID.'")</script>';
         echo '<script>console.log("Going in... username is :'.$username.'")</script>';
         // first we have to put the orderID into the new orderHistory table
-        $sql = "INSERT INTO yellowteam.dbo.orderhistory (username, orderID, orderTimeStamp) VALUES (?, ?, (SELECT TRY_CONVERT (DATE, GETDATE())))";
+        $sql = "INSERT INTO yellowteam.dbo.orderhistory (username, orderID, orderTimeStamp) VALUES (?, ?, (SELECT CURRENT_TIMESTAMP AS orderTimeStamp))";
         $stmt = sqlsrv_prepare($conn, $sql, array($username, $orderID));
         sqlsrv_execute($stmt);
 

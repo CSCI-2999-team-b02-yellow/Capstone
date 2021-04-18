@@ -101,3 +101,8 @@ body {
   background-color: #ffc107;
   border-color: #ffc107;
 }
+
+/* used in history.php to remove weird padding from hidden table rows */
+.hiddenRow {
+  padding: 0 !important;
+}
