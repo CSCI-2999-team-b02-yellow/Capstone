@@ -80,7 +80,7 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
 
 <main class="container p-5">
     <div><h3><b> Order History <b></h3></div><br>
-    <table class="table table-condensed" style="border-collapse:collapse;">
+    <table class="table table-hover table-dark table-condensed" style="border-collapse:collapse;">
         <thead class="thead-dark">
         <tr>
             <th scope="col">#</th>
@@ -126,20 +126,46 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
                 $stmt = sqlsrv_prepare($conn, $sql, array($receiptID, $receiptID));
                 sqlsrv_execute($stmt);
                 ?>
-                <tr data-toggle="collapse" data-target="#row<?php echo $count ?>" class="accordion-toggle">
+                <tr data-toggle="collapse" data-target=".row<?php echo $count ?>" class="accordion-toggle" style="cursor: pointer;">
                 <td><?php echo $count ?></td>
                 <?php
-                while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) { ?>
+                while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+                    ?>
                     <td><?php echo $row["orderTimeStamp"]->format('Y-m-d G:i:s A');?></td>
                     <td><?php echo $row["orderID"]?></td>
-                    <td><?php echo $row["total"]?></td>
+                    <td><?php echo '$'.number_format($row["total"], 2, '.', ',')?></td>
                 </tr>
-                <tr>
-                    <td colspan="4"  class="hiddenRow"><div id="row<?php echo $count ?>" class="accordian-body collapse">Receipt Description</div></td>
+                <thead>
+                <tr class="hiddenRow table-primary text-white">
+                    <th class="accordian-body collapse row<?php echo $count ?>">Item</th>
+                    <th class="accordian-body collapse row<?php echo $count ?>">Unit Cost</th>
+                    <th class="accordian-body collapse row<?php echo $count ?>">Quantity</th>
+                    <th class="accordian-body collapse row<?php echo $count ?>">Price</th>
                 </tr>
-                <?php }
+                </thead>
+                    <?php
+                    $sql2 = "SELECT yellowteam.dbo.inventory.productName, 
+                                yellowteam.dbo.inventory.productSKU, 
+                                yellowteam.dbo.orders.quantity, 
+                                yellowteam.dbo.orders.quantity * yellowteam.dbo.inventory.price AS price 
+                                FROM yellowteam.dbo.orders 
+                                LEFT JOIN yellowteam.dbo.inventory 
+                                ON yellowteam.dbo.inventory.itemID=yellowteam.dbo.orders.itemID
+                                WHERE yellowteam.dbo.orders.orderID = ?";
+                    $stmt2 = sqlsrv_prepare($conn, $sql2, array($receiptID));
+                    sqlsrv_execute($stmt2);
+                    while( $row2 = sqlsrv_fetch_array( $stmt2, SQLSRV_FETCH_ASSOC) ) {
+                    ?>
+                <tr class="hiddenRow table-light text-dark">
+                    <td class="accordian-body collapse row<?php echo $count ?>"><?php echo $row2["productName"]." - ".$row2["productSKU"]; ?></td>
+                    <td class="accordian-body collapse row<?php echo $count ?>"><?php echo '$'.number_format($row2["price"]/$row2["quantity"], 2, '.', ','); ?></td>
+                    <td class="accordian-body collapse row<?php echo $count ?>"><?php echo $row2["quantity"]; ?></td>
+                    <td class="accordian-body collapse row<?php echo $count ?>"><?php echo '$'.number_format($row2["price"], 2, '.', ','); ?></td>
+                </tr>
+                <?php
+                    }
+                }
                 $count++;
-                // TODO: throw in while loop spitting all of these out in a table with timestamp being clickable
             }
         } catch (exception $e) {
             echo $e->getmessage();
