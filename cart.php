@@ -220,11 +220,12 @@ if(isset($_POST["checkout"])) {
         }?>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
-                echo '<a href="weeklysales.php.php">Weekly Sales</a>';
+                echo '<a href="weeklysales.php">Weekly Sales</a>';
             }
         }?>
         <?php if(isset($_SESSION["username"])) {
             echo '<a href="logout.php">Logout</a>';
+        }?>
         }?>
     </div>
 </div>

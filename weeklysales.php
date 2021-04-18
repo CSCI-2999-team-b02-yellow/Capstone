@@ -65,7 +65,7 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
         }?>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
-                echo '<a href="weeklysales.php.php">Weekly Sales</a>';
+                echo '<a href="weeklysales.php">Weekly Sales</a>';
             }
         }?>
         <?php if(isset($_SESSION["username"])) {
