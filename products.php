@@ -174,6 +174,7 @@ function genCookieID() {
   <thead class="thead-dark">
     <tr>
       <th scope="col">#</th>
+	  <th scope="col">Category</th>
       <th scope="col">Product Name</th>
 	  <th scope="col">SKU</th>
       <th scope="col">Description</th>
@@ -183,7 +184,7 @@ function genCookieID() {
   </thead>
   <tbody>
 	<?php
-	$sql= "SELECT * FROM yellowteam.dbo.inventory";
+	$sql= "SELECT * FROM yellowteam.dbo.inventory ORDER BY category";
 	$stmt = sqlsrv_prepare($conn, $sql);
 	sqlsrv_execute($stmt);
 	$count = 1;
@@ -192,6 +193,7 @@ function genCookieID() {
 		<?php //Using 'htmlspecialchars' function to prevent from special character injection ?>
 		<tr id="<?php echo $row["itemID"]; ?>">
 		  <th scope="row"><?php echo $count; ?></th>
+		  <td><?php echo htmlspecialchars($row["category"]); ?></td>
 		  <td><?php echo htmlspecialchars($row["productName"]); ?></td>
 		  <td><?php echo htmlspecialchars($row["productSKU"]); ?></td>
 		  <td><?php echo htmlspecialchars($row["itemDescription"]); ?></td>
