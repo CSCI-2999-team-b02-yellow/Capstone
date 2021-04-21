@@ -44,7 +44,7 @@ if(isset($_POST['submit'])) {
         if(!$userInput == "") { // TODO: frustrating php data types why does strict === not work, only ==
             $selection = implode("', '", $_POST['selection']); // $_POST['selection'] comes from name="selection[]" in li input
             // echo "<script>console.log('selection is: $selection column is: $column userInput is: $userInput')</script>"; TODO: turn on for testing
-            $sql = "UPDATE yellowteam.dbo.inventory SET ".$column." = ? WHERE itemID in (?)";
+            $sql = "UPDATE yellowteam.dbo.inventory SET ".$column." = ? WHERE itemID in ('" .$selection. "')";
             $stmt = sqlsrv_prepare($conn, $sql, array($userInput, $selection));
             sqlsrv_execute($stmt);
             $count++;
@@ -161,7 +161,7 @@ function displayAlert($message) {
 					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
 					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
 				  </summary>
-					<input type='text' name='price' id='price' placeholder="Update Price">
+					<input type='number' name='price' id='price' placeholder="Update Price">
 				</details>
 				<br>
 				<details>
@@ -197,7 +197,7 @@ function displayAlert($message) {
                         <svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
                         <svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
                     </summary>
-                    <input type='text' name='stock' id='stock' placeholder="Update Stock">
+                    <input type='number' name='stock' id='stock' placeholder="Update Stock">
                 </details>
                 <br><br>
                 <button name="submit" class="btn btn-dark">Update</button>
