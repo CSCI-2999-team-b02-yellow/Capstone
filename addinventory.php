@@ -16,9 +16,10 @@ if(!isset($_SESSION["username"])){
 
 if(isset($_POST['addInv'])){
 
-	$sql = "INSERT INTO yellowteam.dbo.inventory (productName, productSKU, itemDescription, price, stock)
-			VALUES (?, ?, ?, ?, ?)";
+	$sql = "INSERT INTO yellowteam.dbo.inventory (category, productName, productSKU, itemDescription, price, stock)
+			VALUES (?, ?, ?, ?, ?, ?)";
 
+	$category = $_POST['p-category'];
 	$productName = $_POST['p-name'];
 	$productSKU = $_POST['p-sku'];
 	$itemDescription = $_POST['p-desc'];
@@ -26,7 +27,7 @@ if(isset($_POST['addInv'])){
     $stock = $_POST['p-stock'];
 	
 	// prepares our statement with connection info, all variables inside placeholders in sql:
-	$stmt = sqlsrv_prepare( $conn, $sql, array($productName, $productSKU, $itemDescription, $price, $stock));
+	$stmt = sqlsrv_prepare( $conn, $sql, array($category, $productName, $productSKU, $itemDescription, $price, $stock));
     sqlsrv_execute($stmt);
 	sqlsrv_free_stmt( $stmt);
 }
@@ -95,6 +96,8 @@ if(isset($_POST['addInv'])){
 <div class="main">
   <h3>Add Products</h3>
   <form action="" method="POST">
+	  <label for="p-name">Category:</label><br>
+      <input type="text" id="p-category" name="p-category" value=""><br>
       <label for="p-name">Product Name:</label><br>
       <input type="text" id="p-name" name="p-name" value=""><br>
       <label for="p-sku">Product SKU:</label><br>
