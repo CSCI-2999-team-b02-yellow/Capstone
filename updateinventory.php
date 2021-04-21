@@ -29,6 +29,7 @@ if(isset($_POST['submit'])) {
     //$columnValues['itemDescription'] = isset($_POST['description']) ? $_POST['description'] : null;
     //$columnValues['price'] = isset($_POST['price']) ? $_POST['price'] : null;
     $columnValues['productSKU'] = $_POST['sku'];
+	$columnValues['category'] = $_POST['category'];
     $columnValues['itemDescription'] = $_POST['description'];
     $columnValues['price'] = $_POST['price'];
     $columnValues['stock'] = $_POST['stock'];
@@ -130,7 +131,7 @@ function displayAlert($message) {
             // I'm choosing to not allow search by the number left in stock, but we can introduce this if needed
             $sql = "SELECT * 
                     FROM yellowteam.dbo.inventory 
-                    ORDER BY productName";
+                    ORDER BY category";
             $stmt = sqlsrv_prepare($conn, $sql);
             sqlsrv_execute($stmt);
             while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
@@ -142,7 +143,8 @@ function displayAlert($message) {
                     <input type="checkbox" name="selection[]" value="<?php echo $row["itemID"]; ?>" />
                     <label for="">
                         <?php echo
-                            $row["productName"]." "
+                            $row["productName"]." - "
+							.$row["category"]."  "
                             .$row["productSKU"]."  $"
                             .round($row["price"],2)." "
                             // .$row["itemDescription"]TODO: reintroduce when more readable
@@ -160,6 +162,15 @@ function displayAlert($message) {
 					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
 				  </summary>
 					<input type='text' name='price' id='price' placeholder="Update Price">
+				</details>
+				<br>
+				<details>
+				  <summary>
+					Category
+					<svg class="control-icon control-icon-expand" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#expand-more" /></svg>
+					<svg class="control-icon control-icon-close" width="24" height="24" role="presentation"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#close" /></svg>
+				  </summary>
+					<input type='text' name='category' id='category' placeholder="Update Category">
 				</details>
 				<br>
 				<details>
