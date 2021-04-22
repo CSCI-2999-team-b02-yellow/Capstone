@@ -174,8 +174,9 @@ function genCookieID() {
   <thead class="thead-dark">
     <tr>
       <th scope="col">#</th>
-	  <th scope="col">Category</th>
+	  <th scope="col">Image</th>
       <th scope="col">Product Name</th>
+	  <th scope="col">Category</th>
 	  <th scope="col">SKU</th>
       <th scope="col">Description</th>
       <th scope="col">Price</th>
@@ -184,7 +185,7 @@ function genCookieID() {
   </thead>
   <tbody>
 	<?php
-	$sql= "SELECT * FROM yellowteam.dbo.inventory ORDER BY category";
+	$sql= "SELECT * FROM yellowteam.dbo.inventory ORDER BY category, productName";
 	$stmt = sqlsrv_prepare($conn, $sql);
 	sqlsrv_execute($stmt);
 	$count = 1;
@@ -193,8 +194,13 @@ function genCookieID() {
 		<?php //Using 'htmlspecialchars' function to prevent from special character injection ?>
 		<tr id="<?php echo $row["itemID"]; ?>">
 		  <th scope="row"><?php echo $count; ?></th>
-		  <td><?php echo htmlspecialchars($row["category"]); ?></td>
+		  <td>
+			<a href="" onclick=window.open("images/<?php echo ($row["productSKU"]); ?>.jpg","demo","width=550,height=300,left=150,top=200,toolbar=0,status=0,") target="_blank">
+				<img src=".\images\<?php echo ($row["productSKU"]); ?>.jpg" alt="Image Test" style="width:50px;height:60px;">
+			</a>
+		  </td>		  
 		  <td><?php echo htmlspecialchars($row["productName"]); ?></td>
+		  <td><?php echo htmlspecialchars($row["category"]); ?></td>
 		  <td><?php echo htmlspecialchars($row["productSKU"]); ?></td>
 		  <td><?php echo htmlspecialchars($row["itemDescription"]); ?></td>
 		  <td><?php echo htmlspecialchars('$'.number_format($row["price"],2, '.', ',')); ?></td>
