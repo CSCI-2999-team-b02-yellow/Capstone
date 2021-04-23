@@ -195,8 +195,8 @@ function genCookieID() {
 		<tr id="<?php echo $row["itemID"]; ?>">
 		  <th scope="row"><?php echo $count; ?></th>
 		  <td>
-			<a href="" onclick=window.open("images/<?php echo ($row["productSKU"]); ?>.jpg","demo","width=550,height=300,left=150,top=200,toolbar=0,status=0,") target="_blank">
-				<img src=".\images\<?php echo ($row["productSKU"]); ?>.jpg" alt="Image Test" style="width:50px;height:60px;">
+			<a href="" onclick=window.open("images/<?php echo ($row["itemID"]) ?>.jpg","demo","width=550,height=300,left=150,top=200,toolbar=0,status=0,") target="_blank">
+				<img src=".\images\<?php echo ($row["itemID"]); ?>.jpg" alt="Image Test" style="width:50px;height:60px;">
 			</a>
 		  </td>		  
 		  <td><?php echo htmlspecialchars($row["productName"]); ?></td>
