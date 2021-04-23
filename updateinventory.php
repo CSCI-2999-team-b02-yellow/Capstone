@@ -70,7 +70,7 @@ if(isset($_POST['submit'])) {
 		$stmt = sqlsrv_prepare($conn, $sql);
 		sqlsrv_execute($stmt);
 		
-		$row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC); // use this row to extract SKU name to rename the image file following it 
+		$row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC); // use this row to extract 'nameID' to rename the image file following it 
 		
 		// Separate the extension from the file to test it and Allowing only 'jpg, jpeg, or png' as file to be upload
 		$fileExt = explode('.', $fileName);
@@ -79,7 +79,7 @@ if(isset($_POST['submit'])) {
 		if(in_array($fileActualExt, $allowed)){
 			if($fileError === 0){
 				if($fileSize < 1000000){ // allowing file size up to 1MB
-					$fileNameNew = $row['productSKU'] .".jpg"; // take the Product SKU as name to be associate with the product.
+					$fileNameNew = $row["itemID"] .".jpg"; // take the Product ID as name to be associate with the product.
 					$filenameDestination = 'images/'.$fileNameNew; 
 					move_uploaded_file($fileTmpName, $filenameDestination); //this php function is to move file to destination we want.
 					//header("Location: ") to do if we want to redirect and have a message displayed.
