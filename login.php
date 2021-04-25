@@ -13,11 +13,11 @@ $conn = sqlsrv_connect( $serverName, $connectionInfo);
 
 // checks if the user is already logged in, if they are redirects based on access level
 if(isset($_SESSION["username"])) {
-    // all access levels greater than 1 (employee+) goes to employees.php
+    // all access levels greater than 1 (employee+) goes to employees
     if ($_SESSION["accesslevel"] > 1) {
-        header("location: employees.php");
+        header("location: employees");
     } else {
-        header("location: index.php");
+        header("location: index");
     }
     exit;
 }
@@ -127,9 +127,9 @@ if(isset($_POST['submit'])) {
 
                     // divide where user goes based on access level:
                     if ($accesslevel > 1) {
-                        welcomeRedirect($fullname, 'employees.php');
+                        welcomeRedirect($fullname, 'employees');
                     } else {
-                        welcomeRedirect($fullname, 'index.php');
+                        welcomeRedirect($fullname, 'index');
                     }
                 } else {
                     $minutes = $banTime / 60;
@@ -386,39 +386,39 @@ function failCheck($conn, $username) {
 <body>
 <div class="header">
     <div class="links">
-        <a href="index.php">Home</a>
-        <a href="products.php">Products</a>
-        <a href="cart.php">Cart</a>
+        <a href="index">Home</a>
+        <a href="products">Products</a>
+        <a href="cart">Cart</a>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
-                echo '<a href="addinventory.php">Add Inventory</a>';
+                echo '<a href="addinventory">Add Inventory</a>';
             }
         }?>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
-                echo '<a href="updateinventory.php">Update Products</a>';
+                echo '<a href="updateinventory">Update Products</a>';
             }
         }?>
-        <a href="contactus.php">Contact Us</a>
-        <a href="aboutus.php">FAQ</a>
+        <a href="contactus">Contact Us</a>
+        <a href="aboutus">FAQ</a>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
-                echo '<a href="employees.php">Employees</a>';
+                echo '<a href="employees">Employees</a>';
             }
         }?>
         <?php if(!isset($_SESSION["username"])) {
-            echo '<a href="login.php">Login</a>';
+            echo '<a href="login">Login</a>';
         }?>
         <?php if(isset($_SESSION["username"])) {
-            echo '<a href="history.php">Order History</a>';
+            echo '<a href="history">Order History</a>';
         }?>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
-                echo '<a href="weeklysales.php">Weekly Sales</a>';
+                echo '<a href="weeklysales">Weekly Sales</a>';
             }
         }?>
         <?php if(isset($_SESSION["username"])) {
-            echo '<a href="logout.php">Logout</a>';
+            echo '<a href="logout">Logout</a>';
         }?>
     </div>
 </div>
@@ -441,7 +441,7 @@ function failCheck($conn, $username) {
         </div>
         <span class="help-block"><?php echo $username_err; ?></span>
         <span class="help-block"><?php echo $password_err; ?></span>
-        <p>Don't have an account? <a href="users.php">Sign up now</a>.</p>
+        <p>Don't have an account? <a href="users">Sign up now</a>.</p>
     </form>
 </div>
 
