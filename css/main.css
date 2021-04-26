@@ -106,3 +106,9 @@ body {
 .hiddenRow {
   padding: 0 !important;
 }
+
+/* used in weeklysales.php to have buttons on the same row, can be recycled elsewhere */
+.inline {
+  display:inline-block;
+  margin-right:5px;
+}
