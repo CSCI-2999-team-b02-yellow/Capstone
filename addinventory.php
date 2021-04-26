@@ -7,14 +7,24 @@ $connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx
 $conn = sqlsrv_connect( $serverName, $connectionInfo);
 
 if(!isset($_SESSION["username"])){
-    header("location: login");
+    header("location: login.php");
 } else {
     if ($_SESSION["accesslevel"] < 2) {
-        header("location: login");
+        header("location: login.php");
     }
 }
 
 if(isset($_POST['addInv'])){
+	
+		//This part here is for image upload
+	$file = $_FILES['file'];
+		//Because of "multipart/form-data" on form, the $file will be an array of words(name, tmpName which is where the file is, the size, error, and type of file),
+		//we have to separate them to change them as we want to.
+	$fileName = $_FILES['file']['name'];
+	$fileTmpName = $_FILES['file']['tmp_name'];
+	$fileSize = $_FILES['file']['size'];
+	$fileError = $_FILES['file']['error'];
+	$fileType = $_FILES['file']['type'];
 
 	$sql = "INSERT INTO yellowteam.dbo.inventory (category, productName, productSKU, itemDescription, price, stock)
 			VALUES (?, ?, ?, ?, ?, ?)";
@@ -30,6 +40,40 @@ if(isset($_POST['addInv'])){
 	$stmt = sqlsrv_prepare( $conn, $sql, array($category, $productName, $productSKU, $itemDescription, $price, $stock));
     sqlsrv_execute($stmt);
 	sqlsrv_free_stmt( $stmt);
+	
+	
+	// this part is for image upload
+	// using $fileName to check if a file is uploaded or not. we can use $fileTmpName too because it is also empty when file is not uploaded.
+	if (!empty($fileName)){
+		//print_r($file); this is just to test the out put of the array $_FILES['file'].
+		$sql = "SELECT * FROM yellowteam.dbo.inventory WHERE productSKU in ('" .$productSKU. "')";
+		$stmt = sqlsrv_prepare($conn, $sql);
+		sqlsrv_execute($stmt);
+		
+		$row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC); // use this row to extract 'nameID' to rename the image file following it 
+		
+		// Separate the extension from the file to test it and Allowing only 'jpg, jpeg, or png' as file to be upload
+		$fileExt = explode('.', $fileName);
+		$fileActualExt = strtolower(end($fileExt));
+		$allowed = array('jpg', 'jpeg', 'png', 'jfif');
+		if(in_array($fileActualExt, $allowed)){
+			if($fileError === 0){
+				if($fileSize < 1000000){ // allowing file size up to 1MB
+					$fileNameNew = $row["itemID"] .".jpg"; // take the Product ID as name to be associate with the product.
+					$filenameDestination = 'images/'.$fileNameNew; 
+					move_uploaded_file($fileTmpName, $filenameDestination); //this php function is to move file to destination we want.
+					//header("Location: ") to do if we want to redirect and have a message displayed.
+				
+				}else{
+					echo "There was an error uploading your file! it is too big. We only accept less than 1MB.";
+				}
+				
+			}else{
+				echo "There was an error uploading your file!";
+			}
+		}
+		
+	}
 }
 ?>
 
@@ -56,59 +100,61 @@ if(isset($_POST['addInv'])){
 <body>
 <div class="header">
     <div class="links">
-         <a href="index">Home</a>
-        <a href="products">Products</a>
-        <a href="cart">Cart</a>
+         <a href="index.php">Home</a>
+        <a href="products.php">Products</a>
+        <a href="cart.php">Cart</a>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
-                echo '<a href="addinventory">Add Inventory</a>';
+                echo '<a href="addinventory.php">Add Inventory</a>';
             }
         }?>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
-                echo '<a href="updateinventory">Update Products</a>';
+                echo '<a href="updateinventory.php">Update Products</a>';
             }
         }?>
-        <a href="contactus">Contact Us</a>
-        <a href="aboutus">FAQ</a>
+        <a href="contactus.php">Contact Us</a>
+        <a href="aboutus.php">FAQ</a>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
-                echo '<a href="employees">Employees</a>';
+                echo '<a href="employees.php">Employees</a>';
             }
         }?>
         <?php if(!isset($_SESSION["username"])) {
-            echo '<a href="login">Login</a>';
+            echo '<a href="login.php">Login</a>';
         }?>
         <?php if(isset($_SESSION["username"])) {
-            echo '<a href="history">Order History</a>';
+            echo '<a href="history.php">Order History</a>';
         }?>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
-                echo '<a href="weeklysales">Weekly Sales</a>';
+                echo '<a href="weeklysales.php">Weekly Sales</a>';
             }
         }?>
         <?php if(isset($_SESSION["username"])) {
-            echo '<a href="logout">Logout</a>';
+            echo '<a href="logout.php">Logout</a>';
         }?>
     </div>
 </div>
 
 <div class="main">
   <h3>Add Products</h3>
-  <form action="" method="POST">
-	  <label for="p-name">Category:</label><br>
-      <input type="text" id="p-category" name="p-category" value=""><br>
-      <label for="p-name">Product Name:</label><br>
-      <input type="text" id="p-name" name="p-name" value=""><br>
-      <label for="p-sku">Product SKU:</label><br>
-      <input type="text" id="p-sku" name="p-sku" value=""><br>
-      <label for="p-desc">Product Description:</label><br>
-      <input type="text" id="p-desc" name="p-desc" value=""><br>
-      <label for="p-price">Product Price:</label><br>
-      <input type="text" id="p-stock" name="p-stock" value=""><br>
-      <label for="p-stock">Product Stock:</label><br>
-      <input type="text" id="p-price" name="p-price" value=""><br><br>
-      <input type="submit" name="addInv" value="Submit"><br><br>
+  <form action="" method="POST" enctype="multipart/form-data">
+      <input type="text" id="p-category" name="p-category" placeholder="Category"><br><br>
+      
+      <input type="text" id="p-name" name="p-name" placeholder="Product Name"><br><br>
+      
+      <input type="text" id="p-sku" name="p-sku" placeholder="Product SKU"><br><br>
+      
+      <input type="text" id="p-desc" name="p-desc" placeholder="Product Description"><br><br>
+      
+      <input type="number" id="p-price" name="p-price" step="0.01" placeholder="Product Price"><br><br>
+      
+      <input type="number" id="p-stock" name="p-stock" placeholder="Product Stock"><br><br>
+	  
+	  <label for="p-sku">Product Image:</label>
+	  <input type="file" name="file"><br><br>
+	  <input type="submit" name="addInv" value="Submit"><br><br>
   </form>
 </div>
 
