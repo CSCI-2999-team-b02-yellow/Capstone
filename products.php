@@ -132,7 +132,7 @@ function genCookieID() {
 <div class="header">
     <div class="links">
 		<a href="index">Home</a>
-
+        <a href="products">Products</a>
         <a href="cart">Cart</a>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
