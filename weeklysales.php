@@ -12,9 +12,32 @@ $serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
 $connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
 $conn = sqlsrv_connect( $serverName, $connectionInfo);
 
+$itemIDsArray = array();
+
 if(isset($_POST["genReport"])) {
-    $reportDate = strtotime($_POST["reportDate"]);
+    $reportDate = $_POST["reportDate"];
     echo "<script>console.log($reportDate)</script>";
+    // TODO: work on formatting so that MSSQL recognizes the reportDate
+    //$reportDate = date("m-d-Y", strtotime($_POST["reportDate"]));
+    //echo "<script>console.log($reportDate)</script>";
+    getItemIDs($conn, $reportDate);
+}
+
+function getItemIDs($conn, $reportDate) {
+    // TODO: throw all this into a function that runs when genReport is pressed:
+    // We will always need to get all itemIDs from the weekof($reportDate) to then get totals for each ID
+    $sql = "SELECT DISTINCT yellowteam.dbo.orders.itemID 
+            FROM yellowteam.dbo.orders 
+            RIGHT JOIN yellowteam.dbo.orderhistory
+            ON yellowteam.dbo.orders.orderID = yellowteam.dbo.orderhistory.orderID
+            WHERE year(?) = year(orderTimeStamp) AND datepart(week, ?) = datepart(week, orderTimeStamp)";
+    $stmt = sqlsrv_prepare($conn, $sql, array($reportDate, $reportDate));
+    sqlsrv_execute($stmt);
+    while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+        $itemIDsArray[] = $row["itemID"];
+        $temp = $row["itemID"];
+        echo "<script>console.log($temp)</script>";
+    }
 }
 
 ?>
