@@ -128,17 +128,12 @@ function displayAlert($message) {
 <body>
 <div class="header">
     <div class="links">
-        <a href="index">Home</a>
+         <a href="index">Home</a>
         <a href="products">Products</a>
         <a href="cart">Cart</a>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
                 echo '<a href="addinventory">Add Inventory</a>';
-            }
-        }?>
-        <?php if(isset($_SESSION["accesslevel"])) {
-            if ($_SESSION["accesslevel"] > 1) {
-                echo '<a href="updateinventory">Update Products</a>';
             }
         }?>
         <a href="contactus">Contact Us</a>
