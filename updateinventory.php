@@ -136,11 +136,7 @@ function displayAlert($message) {
                 echo '<a href="addinventory">Add Inventory</a>';
             }
         }?>
-        <?php if(isset($_SESSION["accesslevel"])) {
-            if ($_SESSION["accesslevel"] > 1) {
-                echo '<a href="updateinventory">Update Products</a>';
-            }
-        }?>
+
         <a href="contactus">Contact Us</a>
         <a href="aboutus">FAQ</a>
         <?php if(isset($_SESSION["accesslevel"])) {
@@ -183,9 +179,11 @@ function displayAlert($message) {
                 // this stores the itemID values for checkmarked boxes in a list(array) called selection[]
                 // this list of itemIDs is later used in an UPDATE SET WHERE IN statement, where a single field is updated for every itemID
                 ?>
-            <li><a>
-                    <input type="checkbox" name="selection[]" value="<?php echo $row["itemID"]; ?>" />
+
+			<li><a>
+                    <input type="checkbox" name="selection[]" value="<?php echo $row["itemID"]; ?>" >
                     <label for="">
+						<img src=".\images\<?php echo ($row["itemID"]); ?>.jpg" alt="Image Test" style="width:50px;height:60px;" onclick=window.open("images/<?php echo ($row["itemID"]) ?>.jpg","demo","width=550,height=300,left=150,top=200,toolbar=0,status=0,") target="_blank">
                         <?php echo
                             $row["productName"]." - "
 							.$row["category"]."  "
