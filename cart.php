@@ -194,7 +194,7 @@ if(isset($_POST["checkout"])) {
     <div class="links">
           <a href="index">Home</a>
         <a href="products">Products</a>
-        <a href="cart">Cart</a>
+
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
                 echo '<a href="addinventory">Add Inventory</a>';
@@ -244,6 +244,7 @@ if(isset($_POST["checkout"])) {
         <thead class="thead-dark">
         <tr>
             <th scope="col">#</th>
+			<th scope="col">Image</th>
             <th scope="col">Product Name</th>
             <th scope="col">SKU</th>
             <th scope="col">Unit Cost</th>
@@ -263,6 +264,13 @@ if(isset($_POST["checkout"])) {
             ?>
             <tr>
                 <th scope="row"><?php echo $count; ?></th>
+				
+				<td>
+					<a href="" onclick=window.open("images/<?php echo ($row["itemID"]) ?>.jpg","demo","width=550,height=300,left=150,top=200,toolbar=0,status=0,") target="_blank">
+						<img src=".\images\<?php echo ($row["itemID"]); ?>.jpg" alt="Image Test" style="width:50px;height:60px;">
+					</a>
+				</td>	
+				
                 <td><?php echo $row["productName"]; ?></td>
                 <td><?php echo $row["productSKU"]; ?></td>
                 <td><?php echo '$'.number_format($row["price"]/$row["quantity"], 2, '.', ','); ?></td>
@@ -287,6 +295,7 @@ if(isset($_POST["checkout"])) {
             <tr>
                 <thead class="thead-dark">
                 <th></th>
+				<th></th>
                 <th></th>
                 <th></th>
                 <th></th>
