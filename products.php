@@ -7,6 +7,39 @@ $serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
 $connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
 $conn = sqlsrv_connect( $serverName, $connectionInfo);
 
+// What to do when the star button is clicked:
+if(isset($_POST["star"])) {
+	
+	// When the button star is pushed, it will save the itemID on the star value to use it to call the right product on the database.
+	
+	$sql= "SELECT * FROM yellowteam.dbo.inventory WHERE itemID = ". $_POST["star"];
+	$stmt = sqlsrv_prepare($conn, $sql);
+	sqlsrv_execute($stmt);
+	while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+	$result = $row["deal"]; 
+	}
+	
+	// for test
+	//echo $result;
+
+	// the deal column on the database for products is a bit(0 or 1)
+	// if it is 1, the good deal is set to product and the star will be yellow.
+	// if the star button is pushed, the deal value will change.
+	if($result===0){
+		$deal=1;
+	}else{
+		$deal=0;
+	}
+	
+	// For test
+	//echo $deal;
+
+	$sql ="UPDATE yellowteam.dbo.inventory SET deal = ? WHERE itemID = ?";
+	$stmt = sqlsrv_prepare($conn, $sql, array($deal, $_POST["star"]), array( "Scrollable" => "buffered"));
+	sqlsrv_execute($stmt);
+}
+
+
 // What to do when the add to cart button is clicked:
 if(isset($_POST["addToCart"])) {
     //echo '<script>console.log("addToCart has been pressed")</script>';
@@ -126,13 +159,20 @@ function genCookieID() {
     <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
     <link rel="manifest" href="img/site.webmanifest">
+	<!-- Font Awesome Icon Library -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+.checked {
+  color: orange;
+}
+</style>
 </head>
 
 <body>
 <div class="header">
     <div class="links">
 		<a href="index">Home</a>
-        <a href="products">Products</a>
+  
         <a href="cart">Cart</a>
         <?php if(isset($_SESSION["accesslevel"])) {
             if ($_SESSION["accesslevel"] > 1) {
@@ -181,6 +221,7 @@ function genCookieID() {
       <th scope="col">Description</th>
       <th scope="col">Price</th>
 	  <th scope="col">Quantity</th>
+	  
     </tr>
   </thead>
   <tbody>
@@ -193,7 +234,17 @@ function genCookieID() {
     ?>
 		<?php //Using 'htmlspecialchars' function to prevent from special character injection ?>
 		<tr id="<?php echo $row["itemID"]; ?>">
-		  <th scope="row"><?php echo $count; ?></th>
+		  <th scope="row"><?php echo $count; ?> 
+		  
+			<?php if(isset($_SESSION["accesslevel"])) {
+            if ($_SESSION["accesslevel"] > 1) {
+                echo "<form action='' method='POST'> <button type='submit' name='star' value='" .$row['itemID']. "' > <span class='fa fa-star"; 
+				if($row['deal']==1){echo " checked";} 
+				echo "'></span></button></form> ";
+            }
+        }?>
+		
+		  </th>
 		  <td>
 			<a href="" onclick=window.open("images/<?php echo ($row["itemID"]) ?>.jpg","demo","width=550,height=300,left=150,top=200,toolbar=0,status=0,") target="_blank">
 				<img src=".\images\<?php echo ($row["itemID"]); ?>.jpg" alt="Image Test" style="width:50px;height:60px;">
@@ -217,6 +268,7 @@ function genCookieID() {
             <td><span class="customBadge danger">Out of Stock</span></td>
           <?php } ?>
 		</tr>
+		
     <?php
         $count++;
 	}
