@@ -20,6 +20,43 @@ session_start();
   <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
   <link rel="manifest" href="img/site.webmanifest">
+  
+  <style>
+      .button {
+        background-color: #1c87c9;
+        -webkit-border-radius: 60px;
+        border-radius: 60px;
+        border: none;
+        color: #eeeeee;
+        cursor: pointer;
+        display: inline-block;
+        font-family: sans-serif;
+        font-size: 20px;
+        padding: 10px 10px;
+        text-align: center;
+        text-decoration: none;
+      }
+      @keyframes glowing {
+        0% {
+          background-color: #2ba805;
+          box-shadow: 0 0 5px #2ba805;
+        }
+        50% {
+          background-color: #49e819;
+          box-shadow: 0 0 20px #49e819;
+        }
+        100% {
+          background-color: #2ba805;
+          box-shadow: 0 0 5px #2ba805;
+        }
+      }
+      .button {
+        animation: glowing 1300ms infinite;
+      }
+	  
+
+    </style>
+  
 </head>
 
 <body>
@@ -64,7 +101,10 @@ session_start();
 
 <div class='main'>
   <h1>Nuts and Bolts Hardware</h1>
-  <h3>Welcome to the nuts and bolts homepage!</h3>
+  <h3>Welcome to the nuts and bolts homepage!</h3><br>
+  <h4>Always with good deals</h4><br>
+ 
+<div><a class="button" href="./deals" target="_blank">Click here to see all our deals</a></div>
 </div>
 
 </body>
