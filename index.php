@@ -1,5 +1,11 @@
 <?php
 session_start();
+
+$serverName = "database-1.cwszuet1aouw.us-east-1.rds.amazonaws.com";
+// $connection info to the database
+$connectionInfo = array( "Database"=>'yellowteam', "UID"=>'admin', "PWD"=>'$LUbx6*xTY957b6');
+$conn = sqlsrv_connect( $serverName, $connectionInfo);
+
 ?>
 
 <!DOCTYPE html>
@@ -55,6 +61,34 @@ session_start();
       }
 	  
 
+
+div.gallery {
+  margin: 5px;
+  border: 1px solid #ccc;
+  float: left;
+  width: 180px;
+}
+
+div.gallery:hover {
+  border: 1px solid #777;
+}
+
+div.gallery img {
+  width: 100%;
+  height: auto;
+}
+
+div.desc {
+  padding: 15px;
+  text-align: center;
+}
+
+div.absolute {
+  position: absolute;
+  left:40%;
+  bottom: 50px;
+
+}
     </style>
   
 </head>
@@ -100,12 +134,30 @@ session_start();
 </div>
 
 <div class='main'>
-  <h1>Nuts and Bolts Hardware</h1>
-  <h3>Welcome to the nuts and bolts homepage!</h3><br>
-  <h4>Always with good deals</h4><br>
- 
-<div><a class="button" href="./deals" target="_blank">Click here to see all our deals</a></div>
-</div>
 
+<h4>Always with good deals</h4><br>
+
+<?php
+$sql= "SELECT * FROM yellowteam.dbo.inventory WHERE deal = 1";
+$stmt = sqlsrv_prepare($conn, $sql);
+sqlsrv_execute($stmt);
+$count = 1;
+while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
+?>
+
+<div class="gallery">
+
+    <img src=".\images\<?php echo ($row["itemID"]); ?>.jpg" alt="<?php echo $row["productName"]; ?>" style="width:100px;height:120px;">
+
+  <div class="desc"><?php echo $row["productName"]; ?> for only $<?php echo round($row["price"],2); ?></div>
+</div>
+ 
+<?php }
+?>
+ 
+
+</div>
+<div class="absolute" ><a class="button" href="./deals" target="_blank">Click here to see all our deals</a></div>
 </body>
+
 </html>
